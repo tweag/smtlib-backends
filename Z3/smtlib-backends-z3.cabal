@@ -1,12 +1,11 @@
 name:                smtlib-backends-z3
 version:             0.1
-synopsis:            A simple way to interact with Z3.
-description:         A simple way to interact with Z3.
-license:             BSD3
+synopsis:            An SMT-LIB backend implemented using Z3's C API.
+description:         This library implements an SMT-LIB backend (in the sense of the smtlib-backends package) using inlined calls to Z3's C API. It is thus in particular much faster than the standard backends relying on running solvers as external processes.
+license:             MIT
 license-file:        LICENSE
-author:              Iavor S. Diatchki
-maintainer:          iavor.diatchki@gmail.com
-category:            Math
+author:              Quentin Aristote
+maintainer:          quentin.aristote@tweag.io
 build-type:          Simple
 cabal-version:       >=1.10
 
