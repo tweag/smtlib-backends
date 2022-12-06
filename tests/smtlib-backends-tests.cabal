@@ -1,0 +1,24 @@
+name:                smtlib-backends-tests
+version:             0.1
+synopsis:            Testing SimpleSMT backends.
+description:         Testing SimpleSMT backends.
+license:             BSD3
+license-file:        LICENSE
+author:              Iavor S. Diatchki
+maintainer:          iavor.diatchki@gmail.com
+category:            Math
+build-type:          Simple
+cabal-version:       >=1.10
+
+library
+  ghc-options:         -Wall -Wunused-packages
+  hs-source-dirs:         src
+  main-is:             Main.hs
+  exposed-modules:     SMTLIB.Backends.Tests
+  other-modules:       SMTLIB.Backends.Tests.Sources
+  build-depends:       base >= 4.15,
+                       bytestring >= 0.10,
+                       smtlib-backends,
+                       tasty,
+                       tasty-hunit
+  default-language: Haskell2010
