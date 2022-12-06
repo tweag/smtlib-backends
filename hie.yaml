@@ -1,0 +1,10 @@
+cradle:
+  cabal:
+    - path: "./Z3/src"
+      component: "smtlib-backends-z3:libs"
+    - path: "./Z3/tests"
+      component: "smtlib-backends-z3:tests"
+    - path: "./src/"
+      component: "smtlib-backends:libs"
+    - path: "./tests/src"
+      component: "smtlib-backends:tests"
