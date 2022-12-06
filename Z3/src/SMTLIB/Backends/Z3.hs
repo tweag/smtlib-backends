@@ -13,8 +13,6 @@ module SMTLIB.Backends.Z3
   )
 where
 
-import SMTLIB.Backends (Backend(..))
-
 import Control.Exception (bracket)
 import Data.ByteString.Builder.Extra
   ( defaultChunkSize,
@@ -31,6 +29,7 @@ import qualified Language.C.Inline as C
 import qualified Language.C.Inline.Context as C
 import qualified Language.C.Inline.Unsafe as CU
 import qualified Language.C.Types as C
+import SMTLIB.Backends (Backend (..))
 
 data LogicalContext
 

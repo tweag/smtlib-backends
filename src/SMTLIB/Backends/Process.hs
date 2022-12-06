@@ -15,8 +15,6 @@ module SMTLIB.Backends.Process
   )
 where
 
-import SMTLIB.Backends (Backend(..))
-
 import Control.Concurrent.Async (Async, async, cancel)
 import qualified Control.Exception as X
 import Control.Monad (forever)
@@ -27,6 +25,7 @@ import Data.ByteString.Builder
     toLazyByteString,
   )
 import qualified Data.ByteString.Char8 as BS
+import SMTLIB.Backends (Backend (..))
 import System.Exit (ExitCode)
 import System.IO (BufferMode (..), Handle, hClose, hFlush, hSetBinaryMode, hSetBuffering)
 import System.Process.Typed
@@ -64,7 +63,9 @@ new exe args logger = do
   solverProcess <-
     startProcess $
       setStdin createLoggedPipe $
-        setStdout createLoggedPipe $ setStderr createLoggedPipe $ P.proc exe args
+        setStdout createLoggedPipe $
+          setStderr createLoggedPipe $
+            P.proc exe args
   -- log error messages created by the backend
   solverErrorReader <-
     async $

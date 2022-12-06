@@ -1,5 +1,5 @@
-import qualified SMTLIB.Backends.Z3 as Z3
 import SMTLIB.Backends.Tests
+import qualified SMTLIB.Backends.Z3 as Z3
 import Test.Tasty
 
 main :: IO ()

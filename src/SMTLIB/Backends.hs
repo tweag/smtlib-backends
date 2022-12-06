@@ -1,12 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
-module SMTLIB.Backends (Backend(..), Solver, initSolver, initSolverNoLogging, command, ackCommand) where
 
-import           Data.ByteString.Builder    (Builder, lazyByteString)
+module SMTLIB.Backends (Backend (..), Solver, initSolver, initSolverNoLogging, command, ackCommand) where
+
+import Data.ByteString.Builder (Builder, lazyByteString)
 import qualified Data.ByteString.Lazy.Char8 as LBS
-import           Data.Char                  (isSpace)
-import           Data.IORef                 (IORef, atomicModifyIORef, newIORef)
-import           Data.List                  (intersperse)
-import           Prelude                    hiding (log)
+import Data.Char (isSpace)
+import Data.IORef (IORef, atomicModifyIORef, newIORef)
+import Data.List (intersperse)
+import Prelude hiding (log)
 
 -- | The type of solver backends. SMTLib2 commands are sent to a backend which
 -- processes them and outputs the solver's response.
@@ -21,7 +22,7 @@ type Queue = IORef Builder
 -- The command must not produce any output when evaluated, unless it is the last
 -- command added before the queue is flushed.
 putQueue :: Queue -> Builder -> IO ()
-putQueue q cmd= atomicModifyIORef q $ \cmds ->
+putQueue q cmd = atomicModifyIORef q $ \cmds ->
   (cmds <> cmd, ())
 
 -- | Empty the queue of commands to evaluate and return its content as a bytestring
@@ -55,9 +56,9 @@ data Solver = Solver
   { -- | The backend processing the commands.
     backend :: Backend,
     -- | An optional queue to write commands that are to be sent to the solver lazily.
-    queue   :: Maybe Queue,
+    queue :: Maybe Queue,
     -- | The function used for logging the solver's activity.
-    log     :: Builder -> IO ()
+    log :: Builder -> IO ()
   }
 
 -- | Send a command in bytestring builder format to the solver.
@@ -89,8 +90,7 @@ initSolver solverBackend lazy logger = do
   let solver = Solver solverBackend solverQueue logger
   if lazy
     then return ()
-    else
-    -- this should not be enabled when the queue is used, as it messes with parsing
+    else -- this should not be enabled when the queue is used, as it messes with parsing
     -- the outputs of commands that are actually interesting
     -- TODO checking for correctness and enabling laziness can be made compatible
     -- but it would require the solver backends to return several outputs at once
@@ -113,7 +113,7 @@ command solver cmd = do
   sendSolver solver
     =<< case queue solver of
       Nothing -> return $ cmd
-      Just q  -> (<> cmd) <$> flushQueue q
+      Just q -> (<> cmd) <$> flushQueue q
 
 -- | A command with no interesting result.
 -- In eager mode, the result is checked for correctness.
@@ -127,15 +127,17 @@ ackCommand solver cmd =
       res <- sendSolver solver cmd
       if (LBS.dropWhile isSpace . LBS.dropWhileEnd isSpace) res == "success"
         then return ()
-        else fail $ unlines
-             [ "Unexpected result from the SMT solver:",
-               "  Expected: success",
-               "  Got: " ++ show res
-             ]
+        else
+          fail $
+            unlines
+              [ "Unexpected result from the SMT solver:",
+                "  Expected: success",
+                "  Got: " ++ show res
+              ]
     Just q -> putQueue q cmd
 
 setOption :: Solver -> Builder -> Builder -> IO ()
-setOption solver name value = ackCommand solver $ list [ "set-option", ":" <> name, value]
+setOption solver name value = ackCommand solver $ list ["set-option", ":" <> name, value]
 
 list :: [Builder] -> Builder
 list bs = "(" <> mconcat (intersperse " " bs) <> ")"
