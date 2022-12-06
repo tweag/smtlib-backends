@@ -17,7 +17,7 @@ library
   other-extensions:    Safe
   build-depends:       base >=4.8 && <10,
                        async,
-                       bytestring >= 0.11.2,
+                       bytestring >= 0.10,
                        typed-process 
   default-language:    Haskell2010
 

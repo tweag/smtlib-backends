@@ -125,7 +125,7 @@ ackCommand solver cmd =
   case queue solver of
     Nothing -> do
       res <- sendSolver solver cmd
-      if (LBS.dropWhile isSpace . LBS.dropWhileEnd isSpace) res == "success"
+      if trim res == "success"
         then return ()
         else
           fail $
@@ -135,6 +135,8 @@ ackCommand solver cmd =
                 "  Got: " ++ show res
               ]
     Just q -> putQueue q cmd
+  where
+    trim = LBS.dropWhile isSpace . LBS.reverse . LBS.dropWhile isSpace . LBS.reverse
 
 setOption :: Solver -> Builder -> Builder -> IO ()
 setOption solver name value = ackCommand solver $ list ["set-option", ":" <> name, value]
