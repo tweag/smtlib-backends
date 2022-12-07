@@ -1,4 +1,4 @@
-name: CI for simple-smt
+name: Tests and formatting
 on:
   push:
     branches: [ master ]
@@ -17,9 +17,7 @@ jobs:
         extra_nix_config: |
           access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
     - name: Processes test
-      run: nix develop --command cabal test || true
-      ## ^^^ TODO Some SExpr tests fail, but SExpr may be removed from
-      ## the library
+      run: nix develop --command cabal test
     - name: Z3 backend test
       run: nix develop --command cabal test Z3
 
