@@ -14,7 +14,7 @@ import Test.Tasty.HUnit
 
 -- | Test a backend by using it to run a list of examples.
 testBackend ::
-  -- \| The name of the test group.
+  -- | The name of the test group.
   String ->
   -- | A list of examples on which to run the backend.
   [Src.Source] ->
