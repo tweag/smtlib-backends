@@ -11,4 +11,5 @@ main = do
       ]
   where
     noLogging = const $ return ()
-    validSources = filter (\source -> name source `notElem` ["assertions", "unsat cores"]) sources
+    -- validSources = filter (\source -> name source `notElem` ["assertions", "unsat cores"]) sources
+    validSources = sources
