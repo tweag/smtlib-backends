@@ -7,7 +7,7 @@ on:
 
 jobs:
   testing:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     name: Run test suites
     steps:
     - uses: actions/checkout@v3.1.0
@@ -22,13 +22,14 @@ jobs:
       run: nix develop --command cabal test Z3
 
   formatting:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     name: Check formatting
     steps:
     - uses: actions/checkout@v3.1.0
     - name: Install nix
       uses: cachix/install-nix-action@v18
       with:
-        nix_path: nixpkgs=channel:nixos-unstable
+        extra_nix_config: |
+          access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
     - run: |
         nix shell nixpkgs#ormolu --command ormolu --mode check $(find . -name '*.hs')
