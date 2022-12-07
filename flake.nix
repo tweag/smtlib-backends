@@ -16,7 +16,7 @@
         pkgs = nixpkgs.legacyPackages.${system};
         hpkgs = pkgs.haskellPackages;
         smtlib-backends = hpkgs.callCabal2nix "smtlib-backends" ./. {};
-        smtlib-backends-tests = hpkgs.callCabal2nix "smtlib-backends-tests" ./tests {inherit smtlib-backends; };
+        smtlib-backends-tests = hpkgs.callCabal2nix "smtlib-backends-tests" ./tests {inherit smtlib-backends;};
         smtlib-backends-z3 = hpkgs.callCabal2nix "smtlib-backends-z3" ./Z3 {
           inherit smtlib-backends smtlib-backends-tests;
         };
