@@ -27,16 +27,16 @@ testBackend ::
 testBackend name sources logger with =
   testGroup name $ do
     lazyMode <- [False, True]
-    return
-      $ testGroup
+    return $
+      testGroup
         ( if lazyMode
             then "lazy"
             else "eager"
         )
-      $ do
-        source <- sources
-        return $
-          testCase (Src.name source) $
-            with $ \backend -> do
-              solver <- initSolver backend lazyMode logger
-              Src.run source solver
+        $ do
+          source <- sources
+          return $
+            testCase (Src.name source) $
+              with $ \backend -> do
+                solver <- initSolver backend lazyMode logger
+                Src.run source solver
