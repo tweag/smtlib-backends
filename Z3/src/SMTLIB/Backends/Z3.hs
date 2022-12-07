@@ -56,12 +56,22 @@ new = do
         [C.funPtr| void free_context(Z3_context ctx) {
                  Z3_del_context(ctx);
                  } |]
+
+  {-
+  We set the error handler to ignore errors. That way if an error happens it doesn't
+  cause the whole program to crash, and the error message if simply transmitted to
+  the Haskell layer inside the output of the eval_smtlib2_string function.
+  -}
   ctx <-
     newForeignPtr ctxFinalizer
       =<< [CU.block| Z3_context {
                  Z3_config cfg = Z3_mk_config();
                  Z3_context ctx = Z3_mk_context(cfg);
                  Z3_del_config(cfg);
+
+                 void ignore_error(Z3_context c, Z3_error_code e) {}
+                 Z3_set_error_handler(ctx, ignore_error);
+
                  return ctx;
                  } |]
   return $ Z3 ctx
