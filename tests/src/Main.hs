@@ -8,7 +8,7 @@ main = do
     testGroup
       "backends"
       [ testBackend "process" sources noLogging $ \todo ->
-          Process.with "z3" ["-in"] noLogging $ todo . Process.toBackend
+          Process.with (Process.Config "z3" ["-in"]) noLogging $ todo . Process.toBackend
       ]
   where
     noLogging = const $ return ()
