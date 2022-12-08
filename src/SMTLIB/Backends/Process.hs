@@ -6,10 +6,11 @@
 
 -- | A module providing a backend that launches solvers as external processes.
 module SMTLIB.Backends.Process
-  ( SolverProcess (..),
+  ( Config (..),
+    Handle,
     new,
     wait,
-    stop,
+    close,
     with,
     toBackend,
   )
@@ -27,7 +28,7 @@ import Data.ByteString.Builder
 import qualified Data.ByteString.Char8 as BS
 import SMTLIB.Backends (Backend (..))
 import System.Exit (ExitCode)
-import System.IO (BufferMode (..), Handle, hClose, hFlush, hSetBinaryMode, hSetBuffering)
+import qualified System.IO as IO
 import System.Process.Typed
   ( Process,
     getStderr,
@@ -43,29 +44,34 @@ import System.Process.Typed
   )
 import qualified System.Process.Typed as P (proc)
 
-data SolverProcess = SolverProcess
+data Config = Config
+  { -- | The command to call to run the solver.
+    exe :: String,
+    -- | Arguments to pass to the solver's command.
+    args :: [String]
+  }
+
+data Handle = Handle
   { -- | The process running the solver.
-    process :: Process Handle Handle Handle,
+    process :: Process IO.Handle IO.Handle IO.Handle,
     -- | A process reading the solver's error messages and logging them.
     errorReader :: Async ()
   }
 
 -- | Run a solver as a process.
 new ::
-  -- | The command to run the solver.
-  String ->
-  -- | Arguments to pass to the solver's command.
-  [String] ->
+  -- | The solver process' configuration.
+  Config ->
   -- | A function for logging the solver's creation, errors and termination.
   (BS.ByteString -> IO ()) ->
-  IO SolverProcess
-new exe args logger = do
+  IO Handle
+new config logger = do
   solverProcess <-
     startProcess $
       setStdin createLoggedPipe $
         setStdout createLoggedPipe $
           setStderr createLoggedPipe $
-            P.proc exe args
+            P.proc (exe config) (args config)
   -- log error messages created by the backend
   solverErrorReader <-
     async $
@@ -76,33 +82,33 @@ new exe args logger = do
         )
         `X.catch` \X.SomeException {} ->
           return ()
-  return $ SolverProcess solverProcess solverErrorReader
+  return $ Handle solverProcess solverErrorReader
   where
     createLoggedPipe =
       mkPipeStreamSpec $ \_ h -> do
-        hSetBinaryMode h True
-        hSetBuffering h $ BlockBuffering Nothing
+        IO.hSetBinaryMode h True
+        IO.hSetBuffering h $ IO.BlockBuffering Nothing
         return
           ( h,
-            hClose h `X.catch` \ex ->
+            IO.hClose h `X.catch` \ex ->
               logger $ BS.pack $ show (ex :: X.IOException)
           )
 
 -- | Wait for the process to exit and cleanup its resources.
-wait :: SolverProcess -> IO ExitCode
-wait solver = do
-  cancel $ errorReader solver
-  waitExitCode $ process solver
+wait :: Handle -> IO ExitCode
+wait handle = do
+  cancel $ errorReader handle
+  waitExitCode $ process handle
 
 -- | Terminate the process, wait for it to actually exit and cleanup its resources.
-stop :: SolverProcess -> IO ()
-stop solver = do
-  cancel $ errorReader solver
-  stopProcess $ process solver
+close :: Handle -> IO ()
+close handle = do
+  cancel $ errorReader handle
+  stopProcess $ process handle
 
 -- | Create a solver process, use it to make a computation and stop it.
-with :: String -> [String] -> (BS.ByteString -> IO ()) -> (SolverProcess -> IO a) -> IO a
-with exe args logger = X.bracket (new exe args logger) stop
+with :: Config -> (BS.ByteString -> IO ()) -> (Handle -> IO a) -> IO a
+with config logger = X.bracket (new config logger) close
 
 infixr 5 :<
 
@@ -110,14 +116,14 @@ pattern (:<) :: Char -> BS.ByteString -> BS.ByteString
 pattern c :< rest <- (BS.uncons -> Just (c, rest))
 
 -- | Make the solver process into an SMT-LIB backend.
-toBackend :: SolverProcess -> Backend
-toBackend solver =
+toBackend :: Handle -> Backend
+toBackend handle =
   Backend $ \cmd -> do
-    hPutBuilder (getStdin $ process solver) $ cmd <> "\n"
-    hFlush $ getStdin $ process solver
+    hPutBuilder (getStdin $ process handle) $ cmd <> "\n"
+    IO.hFlush $ getStdin $ process handle
     toLazyByteString <$> continueNextLine (scanParen 0) mempty
   where
-    -- scanParen read lines from the solver's output channel until it has detected
+    -- scanParen read lines from the handle's output channel until it has detected
     -- a complete s-expression, i.e. a well-parenthesized word that may contain
     -- strings, quoted symbols, and comments
     -- if we detect a ')' at depth 0 that is not enclosed in a string, a quoted
@@ -156,5 +162,5 @@ toBackend solver =
 
     continueNextLine :: (Builder -> BS.ByteString -> IO a) -> Builder -> IO a
     continueNextLine f acc = do
-      next <- BS.hGetLine $ getStdout $ process solver
+      next <- BS.hGetLine $ getStdout $ process handle
       f (acc <> byteString next) next
