@@ -5,9 +5,9 @@
 
 -- | A module providing a backend that sends commands to Z3 using its C API.
 module SMTLIB.Backends.Z3
-  ( Z3 (..),
+  ( Handle,
     new,
-    free,
+    close,
     with,
     toBackend,
   )
@@ -44,13 +44,13 @@ C.context
   )
 C.include "z3.h"
 
-data Z3 = Z3
+data Handle = Handle
   { -- | A black-box representing the internal state of the solver.
     context :: ForeignPtr LogicalContext
   }
 
 -- | Create a new solver instance.
-new :: IO Z3
+new :: IO Handle
 new = do
   let ctxFinalizer =
         [C.funPtr| void free_context(Z3_context ctx) {
@@ -64,21 +64,21 @@ new = do
                  Z3_del_config(cfg);
                  return ctx;
                  } |]
-  return $ Z3 ctx
+  return $ Handle ctx
 
 -- | Release the resources associated with a Z3 instance.
-free :: Z3 -> IO ()
-free = finalizeForeignPtr . context
+close :: Handle -> IO ()
+close = finalizeForeignPtr . context
 
 -- | Create a Z3 instance, use it to run a computation and release its resources.
-with :: (Z3 -> IO a) -> IO a
-with = bracket new free
+with :: (Handle -> IO a) -> IO a
+with = bracket new close
 
 -- | Create a solver backend out of a Z3 instance.
-toBackend :: Z3 -> Backend
-toBackend z3 =
+toBackend :: Handle -> Backend
+toBackend handle =
   Backend $ \cmd -> do
-    let ctx = context z3
+    let ctx = context handle
     let cmd' =
           LBS.toStrict $
             toLazyByteStringWith
