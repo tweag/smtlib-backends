@@ -1,12 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE PatternSynonyms #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ViewPatterns #-}
 
 -- | A module providing a backend that launches solvers as external processes.
 module SMTLIB.Backends.Process
-  ( Config (..),
+  ( Logger (Logger),
+    Config (..),
     Handle,
     new,
     wait,
@@ -26,6 +25,7 @@ import Data.ByteString.Builder
     toLazyByteString,
   )
 import qualified Data.ByteString.Char8 as BS
+import Data.Default (Default, def)
 import SMTLIB.Backends (Backend (..))
 import System.Exit (ExitCode)
 import qualified System.IO as IO
@@ -44,12 +44,25 @@ import System.Process.Typed
   )
 import qualified System.Process.Typed as P (proc)
 
+-- * Some logging facilities
+
+-- | A simple wrapper for loggers.
+newtype Logger = Logger (BS.ByteString -> IO ())
+
+-- | Log nothing by default.
+instance Default Logger where
+  def = Logger $ const $ return ()
+
+-- * Configuration of the solver
+
 data Config = Config
   { -- | The command to call to run the solver.
     exe :: String,
     -- | Arguments to pass to the solver's command.
     args :: [String]
   }
+
+-- * Interaction with solver processes
 
 data Handle = Handle
   { -- | The process running the solver.
@@ -63,9 +76,9 @@ new ::
   -- | The solver process' configuration.
   Config ->
   -- | A function for logging the solver's creation, errors and termination.
-  (BS.ByteString -> IO ()) ->
+  Logger ->
   IO Handle
-new config logger = do
+new config (Logger logger) = do
   solverProcess <-
     startProcess $
       setStdin createLoggedPipe $
@@ -107,7 +120,7 @@ close handle = do
   stopProcess $ process handle
 
 -- | Create a solver process, use it to make a computation and stop it.
-with :: Config -> (BS.ByteString -> IO ()) -> (Handle -> IO a) -> IO a
+with :: Config -> Logger -> (Handle -> IO a) -> IO a
 with config logger = X.bracket (new config logger) close
 
 infixr 5 :<

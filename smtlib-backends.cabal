@@ -16,6 +16,7 @@ library
                        SMTLIB.Backends.Process
   other-extensions:    Safe
   build-depends:       base >=4.8 && <10,
+                       data-default,
                        async,
                        bytestring >= 0.10,
                        typed-process 
@@ -30,6 +31,7 @@ test-suite test
   ghc-options:         -threaded -Wall -Wunused-packages
   build-depends:       base >= 4.15,
                        bytestring >= 0.10,
+                       data-default,
                        smtlib-backends,
                        tasty,
                        tasty-hunit
