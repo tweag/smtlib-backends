@@ -79,8 +79,9 @@ initSolver ::
   Backend ->
   -- | whether to enable lazy mode (see 'Solver' for the meaning of this flag)
   Bool ->
-  -- | function for logging the solver's activity
-  (Builder -> IO ()) ->
+  -- | function for logging the solver's activity;
+  -- it should manually jump lines if needed
+  (Text -> IO ()) ->
   IO Solver
 initSolver solverBackend lazy logger = do
   solverQueue <-

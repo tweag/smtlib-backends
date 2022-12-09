@@ -61,6 +61,7 @@ data Handle = Handle
   }
 
 -- | Run a solver as a process.
+-- Failures relative to terminating the process are logged and discarded.
 new ::
   -- | The solver process' configuration.
   Config ->
@@ -110,7 +111,14 @@ close handle = do
   stopProcess $ process handle
 
 -- | Create a solver process, use it to make a computation and stop it.
-with :: Config -> (Text -> IO ()) -> (Handle -> IO a) -> IO a
+with ::
+  -- | The solver process' configuration.
+  Config ->
+  -- | A function for logging the solver's creation, errors and termination.
+  (Text -> IO ()) ->
+  -- | The computation to run with the solver process
+  (Handle -> IO a) ->
+  IO a
 with config logger = X.bracket (new config logger) close
 
 infixr 5 :<
