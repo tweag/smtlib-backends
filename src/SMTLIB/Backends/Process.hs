@@ -9,6 +9,7 @@ module SMTLIB.Backends.Process
   ( Config (..),
     Handle,
     new,
+    newNoLogging,
     wait,
     close,
     with,
@@ -97,6 +98,11 @@ new config logText = do
               logger $ BS.pack $ show (ex :: X.IOException)
           )
     logger = logText . decodeUtf8Lenient
+
+-- | Run a solver as a process. See `new`.
+-- Failures relative to terminating the process are ignored.
+newNoLogging :: Config -> IO Handle
+newNoLogging config = new config $ const $ return ()
 
 -- | Wait for the process to exit and cleanup its resources.
 wait :: Handle -> IO ExitCode
