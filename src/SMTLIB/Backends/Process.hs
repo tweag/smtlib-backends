@@ -26,6 +26,8 @@ import Data.ByteString.Builder
     toLazyByteString,
   )
 import qualified Data.ByteString.Char8 as BS
+import Data.Text (Text)
+import Data.Text.Encoding (decodeUtf8Lenient)
 import SMTLIB.Backends (Backend (..))
 import System.Exit (ExitCode)
 import qualified System.IO as IO
@@ -63,9 +65,9 @@ new ::
   -- | The solver process' configuration.
   Config ->
   -- | A function for logging the solver's creation, errors and termination.
-  (BS.ByteString -> IO ()) ->
+  (Text -> IO ()) ->
   IO Handle
-new config logger = do
+new config logText = do
   solverProcess <-
     startProcess $
       setStdin createLoggedPipe $
@@ -93,6 +95,7 @@ new config logger = do
             IO.hClose h `X.catch` \ex ->
               logger $ BS.pack $ show (ex :: X.IOException)
           )
+    logger = logText . decodeUtf8Lenient
 
 -- | Wait for the process to exit and cleanup its resources.
 wait :: Handle -> IO ExitCode
@@ -107,7 +110,7 @@ close handle = do
   stopProcess $ process handle
 
 -- | Create a solver process, use it to make a computation and stop it.
-with :: Config -> (BS.ByteString -> IO ()) -> (Handle -> IO a) -> IO a
+with :: Config -> (Text -> IO ()) -> (Handle -> IO a) -> IO a
 with config logger = X.bracket (new config logger) close
 
 infixr 5 :<

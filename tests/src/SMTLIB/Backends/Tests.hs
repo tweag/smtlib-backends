@@ -6,7 +6,7 @@ module SMTLIB.Backends.Tests
   )
 where
 
-import Data.ByteString.Builder (Builder)
+import Data.Text (Text)
 import SMTLIB.Backends (Backend, initSolver)
 import qualified SMTLIB.Backends.Tests.Sources as Src
 import Test.Tasty
@@ -19,7 +19,7 @@ testBackend ::
   -- | A list of examples on which to run the backend.
   [Src.Source] ->
   -- | A function for logging the solver's activity.
-  (Builder -> IO ()) ->
+  (Text -> IO ()) ->
   -- | A function that should create a backend, run a given
   -- computation and release the backend's resources.
   ((Backend -> Assertion) -> Assertion) ->

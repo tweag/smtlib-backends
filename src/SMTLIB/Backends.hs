@@ -2,11 +2,13 @@
 
 module SMTLIB.Backends (Backend (..), Solver, initSolver, initSolverNoLogging, command, ackCommand) where
 
-import Data.ByteString.Builder (Builder, lazyByteString)
+import Data.ByteString.Builder (Builder, toLazyByteString)
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Char (isSpace)
 import Data.IORef (IORef, atomicModifyIORef, newIORef)
 import Data.List (intersperse)
+import Data.Text (Text)
+import Data.Text.Encoding (decodeUtf8Lenient)
 import Prelude hiding (log)
 
 -- | The type of solver backends. SMTLib2 commands are sent to a backend which
@@ -58,15 +60,15 @@ data Solver = Solver
     -- | An optional queue to write commands that are to be sent to the solver lazily.
     queue :: Maybe Queue,
     -- | The function used for logging the solver's activity.
-    log :: Builder -> IO ()
+    log :: LBS.ByteString -> IO ()
   }
 
 -- | Send a command in bytestring builder format to the solver.
 sendSolver :: Solver -> Builder -> IO LBS.ByteString
 sendSolver solver cmd = do
-  log solver $ "[send] " <> cmd
+  log solver $ toLazyByteString $ "[send] " <> cmd
   resp <- send (backend solver) cmd
-  log solver $ "[recv] " <> lazyByteString resp
+  log solver $ "[recv] " <> resp
   return resp
 
 -- | Create a new solver and initialize it with some options so that it behaves
@@ -87,7 +89,7 @@ initSolver solverBackend lazy logger = do
         ref <- newIORef mempty
         return $ Just ref
       else return Nothing
-  let solver = Solver solverBackend solverQueue logger
+  let solver = Solver solverBackend solverQueue $ logger . decodeUtf8Lenient . LBS.toStrict
   if lazy
     then return ()
     else -- this should not be enabled when the queue is used, as it messes with parsing
