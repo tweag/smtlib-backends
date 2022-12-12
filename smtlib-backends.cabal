@@ -10,6 +10,14 @@ build-type:          Simple
 category:            SMT
 cabal-version:       >=1.10
 
+source-repository head
+  type: git
+  location: https://github.com/tweag/smtlib-backends
+source-repository this
+  type: git
+  location: https://github.com/tweag/smtlib-backends
+  tag: 0.1
+
 library
   hs-source-dirs:      src
   ghc-options:         -Wall -Wunused-packages
