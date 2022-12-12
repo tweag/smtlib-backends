@@ -24,6 +24,13 @@ Another option is to manually install Z3 to use the process backend, and the
 Z3 C library to use the Z3 backend. Then you can build and test the libraries
 using `cabal build` and `cabal test`.
 
+## Implementing backends
+
+Currently, backends only need to provide a function to submit queries, as
+documented in [SMTLIB.Backends.Backend](src/SMTLIB/Backends.hs). See
+[SMTLIB.Backends.Process.toBackend](src/SMTLIB/Backends/Process.hs) or
+[SMTLIB.Backends.Z3.toBackend](Z3/src/SMTLIB/Backends/Z3.hs) for examples.
+
 ## Motivation
 
 It was created because there are a lot of Haskell projects using SMT solvers
@@ -54,8 +61,3 @@ do
   git add $sourceFilePath
 done;
 ```
-
-### Implementing backends
-
-For our implementation of backends, we use and recommend using the [Handle
-design pattern](https://jaspervdj.be/posts/2018-03-08-handle-pattern.html#the-module-layout).
