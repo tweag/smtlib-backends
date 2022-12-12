@@ -1,42 +1,63 @@
-name:                smtlib-backends-z3
-version:             0.1
-synopsis:            An SMT-LIB backend implemented using Z3's C API.
-description:         This library implements an SMT-LIB backend (in the sense of the smtlib-backends package) using inlined calls to Z3's C API. It is thus in particular much faster than the standard backends relying on running solvers as external processes.
-license:             MIT
-license-file:        LICENSE
-author:              Quentin Aristote
-maintainer:          quentin.aristote@tweag.io
-build-type:          Simple
-cabal-version:       >=1.10
+name:          smtlib-backends-z3
+version:       0.1
+synopsis:      An SMT-LIB backend implemented using Z3's C API.
+description:
+  This library implements an SMT-LIB backend (in the sense of the smtlib-backends package) using inlined calls to Z3's C API. It is thus in particular much faster than the standard backends relying on running solvers as external processes.
+
+license:       MIT
+license-file:  LICENSE
+author:        Quentin Aristote
+maintainer:    quentin.aristote@tweag.io
+build-type:    Simple
+category:      SMT
+cabal-version: >=1.10
+
+source-repository head
+  type:     git
+  location: https://github.com/tweag/smtlib-backends
+  subdir:   Z3
+
+source-repository this
+  type:     git
+  location: https://github.com/tweag/smtlib-backends
+  tag:      0.1
+  subdir:   Z3
 
 library
-  hs-source-dirs:      src
-  ghc-options:         -Wall -Wunused-packages
-  exposed-modules:     SMTLIB.Backends.Z3
-  build-depends:       base >= 4.15,
-                       smtlib-backends,
-                       containers >= 0.6,
-                       bytestring >= 0.10,
-                       inline-c
+  hs-source-dirs:   src
+  ghc-options:      -Wall -Wunused-packages
+  exposed-modules:  SMTLIB.Backends.Z3
+  build-depends:
+      base             >=4.15 && <4.17.0
+    , bytestring       >=0.10
+    , containers       >=0.6
+    , inline-c
+    , smtlib-backends
+
   -- inspired from haskell-z3
-  if os(darwin) || os(windows)
-    extra-libraries:
-        z3
+  if (os(osx) || os(windows))
+    extra-libraries: z3
+
   else
     extra-libraries:
-        gomp z3 gomp
+      gomp
+      z3
+      gomp
+
   default-language: Haskell2010
 
 test-suite test
-  type: exitcode-stdio-1.0
-  hs-source-dirs:      tests
-  main-is: Main.hs
-  ghc-options:         -threaded -Wall -Wunused-packages
-  build-depends:       base >= 4.15,
-                       bytestring >= 0.10,
-                       smtlib-backends,
-                       smtlib-backends-z3,
-                       smtlib-backends-tests,
-                       tasty,
-                       tasty-hunit >= 0.10
-  default-language:    Haskell2010
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   tests
+  main-is:          Main.hs
+  ghc-options:      -threaded -Wall -Wunused-packages
+  build-depends:
+      base                   >=4.15
+    , bytestring             >=0.10
+    , smtlib-backends
+    , smtlib-backends-tests
+    , smtlib-backends-z3
+    , tasty
+    , tasty-hunit            >=0.10
+
+  default-language: Haskell2010
