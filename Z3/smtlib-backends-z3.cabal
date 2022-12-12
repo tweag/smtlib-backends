@@ -33,7 +33,10 @@ test-suite test
   main-is: Main.hs
   ghc-options:         -threaded -Wall -Wunused-packages
   build-depends:       base >= 4.15,
+                       bytestring >= 0.10,
+                       smtlib-backends,
                        smtlib-backends-z3,
                        smtlib-backends-tests,
-                       tasty
+                       tasty,
+                       tasty-hunit >= 0.10
   default-language:    Haskell2010
