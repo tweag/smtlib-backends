@@ -38,6 +38,7 @@
                 cabal-install
                 hlint
                 haskell-language-server
+                cabal-fmt
               ])
               ++ [pkgs.z3];
 
