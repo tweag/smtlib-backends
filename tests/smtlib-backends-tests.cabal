@@ -23,7 +23,6 @@ source-repository this
 library
   ghc-options:         -Wall -Wunused-packages
   hs-source-dirs:      src
-  main-is:             Main.hs
   exposed-modules:     SMTLIB.Backends.Tests
   other-modules:       SMTLIB.Backends.Tests.Sources
   build-depends:       base >= 4.15 && <= 4.17,
