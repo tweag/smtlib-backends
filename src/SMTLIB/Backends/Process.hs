@@ -55,8 +55,8 @@ data Config = Config
     logger :: LBS.ByteString -> IO ()
   }
 
+-- | By default, use Z3 as an external process and ignore log messages.
 instance Default Config where
-  -- By default, use Z3 as an external process and ignore log messages.
   def = Config "z3" ["-in"] $ const $ return ()
 
 data Handle = Handle
