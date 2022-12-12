@@ -27,8 +27,7 @@ import Data.ByteString.Builder
     toLazyByteString,
   )
 import qualified Data.ByteString.Char8 as BS
-import Data.Text (Text)
-import Data.Text.Encoding (decodeUtf8Lenient)
+import qualified Data.ByteString.Lazy.Char8 as LBS
 import SMTLIB.Backends (Backend (..))
 import System.Exit (ExitCode)
 import qualified System.IO as IO
@@ -67,9 +66,9 @@ new ::
   -- | The solver process' configuration.
   Config ->
   -- | A function for logging the solver's creation, errors and termination.
-  (Text -> IO ()) ->
+  (LBS.ByteString -> IO ()) ->
   IO Handle
-new config logText = do
+new config logLazy = do
   solverProcess <-
     startProcess $
       setStdin createLoggedPipe $
@@ -97,7 +96,7 @@ new config logText = do
             IO.hClose h `X.catch` \ex ->
               logger $ BS.pack $ show (ex :: X.IOException)
           )
-    logger = logText . decodeUtf8Lenient
+    logger = logLazy . LBS.fromStrict
 
 -- | Run a solver as a process. See `new`.
 -- Failures relative to terminating the process are ignored.
@@ -121,7 +120,7 @@ with ::
   -- | The solver process' configuration.
   Config ->
   -- | A function for logging the solver's creation, errors and termination.
-  (Text -> IO ()) ->
+  (LBS.ByteString -> IO ()) ->
   -- | The computation to run with the solver process
   (Handle -> IO a) ->
   IO a

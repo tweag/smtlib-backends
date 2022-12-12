@@ -7,8 +7,6 @@ import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Char (isSpace)
 import Data.IORef (IORef, atomicModifyIORef, newIORef)
 import Data.List (intersperse)
-import Data.Text (Text)
-import Data.Text.Encoding (decodeUtf8Lenient)
 import Prelude hiding (log)
 
 -- | The type of solver backends. SMTLib2 commands are sent to a backend which
@@ -81,7 +79,7 @@ initSolver ::
   Bool ->
   -- | function for logging the solver's activity;
   -- it should manually jump lines if needed
-  (Text -> IO ()) ->
+  (LBS.ByteString -> IO ()) ->
   IO Solver
 initSolver solverBackend lazy logger = do
   solverQueue <-
@@ -90,7 +88,7 @@ initSolver solverBackend lazy logger = do
         ref <- newIORef mempty
         return $ Just ref
       else return Nothing
-  let solver = Solver solverBackend solverQueue $ logger . decodeUtf8Lenient . LBS.toStrict
+  let solver = Solver solverBackend solverQueue logger
   if lazy
     then return ()
     else -- this should not be enabled when the queue is used, as it messes with parsing

@@ -16,8 +16,8 @@ library
   exposed-modules:     SMTLIB.Backends.Tests
   other-modules:       SMTLIB.Backends.Tests.Sources
   build-depends:       base >= 4.15,
+                       bytestring >= 0.10,
                        smtlib-backends,
-                       text >= 1.2,
                        tasty,
                        tasty-hunit
   default-language: Haskell2010
