@@ -16,7 +16,7 @@ library
   exposed-modules:     SMTLIB.Backends
                        SMTLIB.Backends.Process
   other-extensions:    Safe
-  build-depends:       base >=4.8 && <10,
+  build-depends:       base >= 4.15 && <= 4.17,
                        async,
                        bytestring >= 0.10,
                        typed-process 
@@ -29,7 +29,7 @@ test-suite test
   other-modules:       SMTLIB.Backends.Tests
                        SMTLIB.Backends.Tests.Sources
   ghc-options:         -threaded -Wall -Wunused-packages
-  build-depends:       base >= 4.15,
+  build-depends:       base >= 4.15 && <= 4.17,
                        bytestring >= 0.10,
                        smtlib-backends,
                        tasty,

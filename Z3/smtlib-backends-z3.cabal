@@ -14,7 +14,7 @@ library
   hs-source-dirs:      src
   ghc-options:         -Wall -Wunused-packages
   exposed-modules:     SMTLIB.Backends.Z3
-  build-depends:       base >= 4.15,
+  build-depends:       base >= 4.15 && <= 4.17,
                        smtlib-backends,
                        containers >= 0.6,
                        bytestring >= 0.10,
