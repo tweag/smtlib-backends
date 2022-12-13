@@ -13,7 +13,7 @@ overhead. See the documentation of
 [SMTLIB.Backends.Solver](src/SMTLIB/Backends.hs) for the details.
 
 Logging of queries, errors and results is also supported as shown in the
-example programs.
+example programs that will be added soon.
 
 ## Building and testing
 
