@@ -39,6 +39,6 @@ testBackend name sources with =
               with $ \backend -> do
                 solver <- initSolver backend lazyMode
                 Src.run source solver
-                -- ensure the sources consisting only of ackCommands also run
+                -- ensure the sources consisting only of queued commands also run
                 _ <- command solver "(get-info :name)"
                 return ()
