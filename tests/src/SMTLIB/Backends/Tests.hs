@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 -- | A module providing functions useful for testing a backend for SimpleSMT.
 module SMTLIB.Backends.Tests
   ( testBackend,
@@ -6,7 +8,7 @@ module SMTLIB.Backends.Tests
   )
 where
 
-import SMTLIB.Backends (Backend, initSolver)
+import SMTLIB.Backends (Backend, command, initSolver)
 import qualified SMTLIB.Backends.Tests.Sources as Src
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -37,3 +39,6 @@ testBackend name sources with =
               with $ \backend -> do
                 solver <- initSolver backend lazyMode
                 Src.run source solver
+                -- ensure the sources consisting only of ackCommands also run
+                _ <- command solver "(get-info :name)"
+                return ()
