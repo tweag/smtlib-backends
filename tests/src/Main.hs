@@ -12,4 +12,4 @@ main = do
           Process.with def $ todo . Process.toBackend
       ]
   where
-    noLogging = const $ return ()
+    noLogging = \_ _ -> return ()

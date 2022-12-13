@@ -16,7 +16,7 @@ main = do
       ]
   where
     z3 todo = Z3.with $ todo . Z3.toBackend
-    noLogging = const $ return ()
+    noLogging = \_ _ -> return ()
     validSources = filter (\source -> name source `notElem` ["assertions", "unsat cores"]) sources
     failingSources =
       [ Source "invalid command" $ \solver -> do
