@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module SMTLIB.Backends (Backend (..), LogType (..), Solver, initSolver, initSolverNoLogging, command, ackCommand) where
+module SMTLIB.Backends (Backend (..), Solver, initSolver, command, ackCommand) where
 
-import Data.ByteString.Builder (Builder, toLazyByteString)
+import Data.ByteString.Builder (Builder)
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Char (isSpace)
 import Data.IORef (IORef, atomicModifyIORef, newIORef)
@@ -31,13 +31,6 @@ flushQueue :: Queue -> IO Builder
 flushQueue q = atomicModifyIORef q $ \cmds ->
   (mempty, cmds)
 
--- | The type of messages logged by the solver.
-data LogType
-  = -- | The message is a command that was sent to the backend.
-    Send
-  | -- | The message is a response outputted by the backend.
-    Recv
-
 -- | A solver is essentially a wrapper around a solver backend. It also comes with
 -- a function for logging the solver's activity, and an optional queue of commands
 -- to send to the backend.
@@ -63,18 +56,8 @@ data Solver = Solver
   { -- | The backend processing the commands.
     backend :: Backend,
     -- | An optional queue to write commands that are to be sent to the solver lazily.
-    queue :: Maybe Queue,
-    -- | The function used for logging the solver's activity.
-    log :: LogType -> LBS.ByteString -> IO ()
+    queue :: Maybe Queue
   }
-
--- | Send a command in bytestring builder format to the solver.
-sendSolver :: Solver -> Builder -> IO LBS.ByteString
-sendSolver solver cmd = do
-  log solver Send $ toLazyByteString cmd
-  resp <- send (backend solver) cmd
-  log solver Recv resp
-  return resp
 
 -- | Create a new solver and initialize it with some options so that it behaves
 -- correctly for our use.
@@ -84,19 +67,15 @@ initSolver ::
   Backend ->
   -- | whether to enable lazy mode (see 'Solver' for the meaning of this flag)
   Bool ->
-  -- | function for logging the solver's activity;
-  -- if you want line breaks between each log message, you need to implement
-  -- it yourself, e.g use @`LBS.putStr` . (<> "\n")@
-  (LogType -> LBS.ByteString -> IO ()) ->
   IO Solver
-initSolver solverBackend lazy logger = do
+initSolver solverBackend lazy = do
   solverQueue <-
     if lazy
       then do
         ref <- newIORef mempty
         return $ Just ref
       else return Nothing
-  let solver = Solver solverBackend solverQueue logger
+  let solver = Solver solverBackend solverQueue
   if lazy
     then return ()
     else -- this should not be enabled when the queue is used, as it messes with parsing
@@ -109,17 +88,12 @@ initSolver solverBackend lazy logger = do
   setOption solver "produce-models" "true"
   return solver
 
--- | Initialize a solver whose logging function doesn't do anything.
--- See `initSolver`.
-initSolverNoLogging :: Backend -> Bool -> IO Solver
-initSolverNoLogging solverBackend lazyMode = initSolver solverBackend lazyMode $ \_ _ -> return ()
-
 -- | Have the solver evaluate a SMT-LIB command.
 -- This forces the queued commands to be evaluated as well, but their results are
 -- *not* checked for correctness.
 command :: Solver -> Builder -> IO LBS.ByteString
 command solver cmd = do
-  sendSolver solver
+  send (backend solver)
     =<< case queue solver of
       Nothing -> return $ cmd
       Just q -> (<> cmd) <$> flushQueue q
@@ -133,7 +107,7 @@ ackCommand :: Solver -> Builder -> IO ()
 ackCommand solver cmd =
   case queue solver of
     Nothing -> do
-      res <- sendSolver solver cmd
+      res <- send (backend solver) cmd
       if trim res == "success"
         then return ()
         else

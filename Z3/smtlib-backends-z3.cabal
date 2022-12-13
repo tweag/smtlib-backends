@@ -28,7 +28,7 @@ library
   ghc-options:      -Wall -Wunused-packages
   exposed-modules:  SMTLIB.Backends.Z3
   build-depends:
-      base             >=4.15 && <4.17.0
+      base             >=4.14 && <4.17.0
     , bytestring       >=0.10
     , containers       >=0.6
     , inline-c
@@ -52,7 +52,7 @@ test-suite test
   main-is:          Main.hs
   ghc-options:      -threaded -Wall -Wunused-packages
   build-depends:
-      base                   >=4.15
+      base                   >=4.14
     , bytestring             >=0.10
     , smtlib-backends
     , smtlib-backends-tests

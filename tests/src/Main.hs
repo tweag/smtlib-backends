@@ -8,8 +8,6 @@ main = do
   defaultMain $
     testGroup
       "backends"
-      [ testBackend "process" sources noLogging $ \todo ->
+      [ testBackend "process" sources $ \todo ->
           Process.with def $ todo . Process.toBackend
       ]
-  where
-    noLogging = \_ _ -> return ()
