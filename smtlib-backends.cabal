@@ -51,7 +51,6 @@ test-suite test
   ghc-options:      -threaded -Wall -Wunused-packages
   build-depends:
       base             >=4.15 && <4.17.0
-    , bytestring       >=0.10
     , data-default
     , smtlib-backends
     , tasty

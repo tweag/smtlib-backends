@@ -11,12 +11,11 @@ main :: IO ()
 main = do
   defaultMain $
     testGroup "Tests" $
-      [ testBackend "Examples" validSources noLogging z3,
-        testBackend "Error handling" failingSources noLogging z3
+      [ testBackend "Examples" validSources z3,
+        testBackend "Error handling" failingSources z3
       ]
   where
     z3 todo = Z3.with $ todo . Z3.toBackend
-    noLogging = \_ _ -> return ()
     validSources = filter (\source -> name source `notElem` ["assertions", "unsat cores"]) sources
     failingSources =
       [ Source "invalid command" $ \solver -> do

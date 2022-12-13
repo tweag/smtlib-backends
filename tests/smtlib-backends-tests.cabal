@@ -30,7 +30,6 @@ library
   other-modules:    SMTLIB.Backends.Tests.Sources
   build-depends:
       base             >=4.15 && <4.17.0
-    , bytestring       >=0.10
     , smtlib-backends
     , tasty
     , tasty-hunit
