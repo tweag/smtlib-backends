@@ -87,7 +87,7 @@ new config = do
       forever
         ( do
             errs <- BS.hGetLine $ getStderr solverProcess
-            logger' $ "[stderr] " <> errs
+            logger' $ errs
         )
         `X.catch` \X.SomeException {} ->
           return ()
