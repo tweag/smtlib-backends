@@ -59,10 +59,6 @@ data Solver = Solver
     queue :: Maybe Queue
   }
 
--- | Send a command in bytestring builder format to the solver.
-sendSolver :: Solver -> Builder -> IO LBS.ByteString
-sendSolver solver cmd = send (backend solver) cmd
-
 -- | Create a new solver and initialize it with some options so that it behaves
 -- correctly for our use.
 -- In particular, the "print-success" option is disabled in lazy mode. This should
@@ -97,7 +93,7 @@ initSolver solverBackend lazy = do
 -- *not* checked for correctness.
 command :: Solver -> Builder -> IO LBS.ByteString
 command solver cmd = do
-  sendSolver solver
+  send (backend solver)
     =<< case queue solver of
       Nothing -> return $ cmd
       Just q -> (<> cmd) <$> flushQueue q
@@ -111,7 +107,7 @@ ackCommand :: Solver -> Builder -> IO ()
 ackCommand solver cmd =
   case queue solver of
     Nothing -> do
-      res <- sendSolver solver cmd
+      res <- send (backend solver) cmd
       if trim res == "success"
         then return ()
         else
