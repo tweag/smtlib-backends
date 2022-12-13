@@ -26,6 +26,8 @@ import Data.ByteString.Builder
     toLazyByteString,
   )
 import qualified Data.ByteString.Char8 as BS
+import qualified Data.ByteString.Lazy.Char8 as LBS
+import Data.Default (Default, def)
 import SMTLIB.Backends (Backend (..))
 import System.Exit (ExitCode)
 import qualified System.IO as IO
@@ -48,8 +50,16 @@ data Config = Config
   { -- | The command to call to run the solver.
     exe :: String,
     -- | Arguments to pass to the solver's command.
-    args :: [String]
+    args :: [String],
+    -- | A function for logging the solver process' creation, errors and termination.
+    -- If you want line breaks between each log message, you need to implement
+    -- it yourself, e.g use @`LBS.putStr` . (<> "\n")@.
+    logger :: LBS.ByteString -> IO ()
   }
+
+-- | By default, use Z3 as an external process and ignore log messages.
+instance Default Config where
+  def = Config "z3" ["-in"] $ const $ return ()
 
 data Handle = Handle
   { -- | The process running the solver.
@@ -59,13 +69,12 @@ data Handle = Handle
   }
 
 -- | Run a solver as a process.
+-- Failures relative to terminating the process are logged and discarded.
 new ::
   -- | The solver process' configuration.
   Config ->
-  -- | A function for logging the solver's creation, errors and termination.
-  (BS.ByteString -> IO ()) ->
   IO Handle
-new config logger = do
+new config = do
   solverProcess <-
     startProcess $
       setStdin createLoggedPipe $
@@ -78,7 +87,7 @@ new config logger = do
       forever
         ( do
             errs <- BS.hGetLine $ getStderr solverProcess
-            logger $ "[stderr] " <> errs
+            logger' $ errs
         )
         `X.catch` \X.SomeException {} ->
           return ()
@@ -91,8 +100,9 @@ new config logger = do
         return
           ( h,
             IO.hClose h `X.catch` \ex ->
-              logger $ BS.pack $ show (ex :: X.IOException)
+              logger' $ BS.pack $ show (ex :: X.IOException)
           )
+    logger' = (logger config) . LBS.fromStrict
 
 -- | Wait for the process to exit and cleanup its resources.
 wait :: Handle -> IO ExitCode
@@ -107,8 +117,13 @@ close handle = do
   stopProcess $ process handle
 
 -- | Create a solver process, use it to make a computation and stop it.
-with :: Config -> (BS.ByteString -> IO ()) -> (Handle -> IO a) -> IO a
-with config logger = X.bracket (new config logger) close
+with ::
+  -- | The solver process' configuration.
+  Config ->
+  -- | The computation to run with the solver process
+  (Handle -> IO a) ->
+  IO a
+with config = X.bracket (new config) close
 
 infixr 5 :<
 

@@ -6,8 +6,8 @@ module SMTLIB.Backends.Tests
   )
 where
 
-import Data.ByteString.Builder (Builder)
-import SMTLIB.Backends (Backend, initSolver)
+import Data.ByteString.Lazy.Char8 as LBS
+import SMTLIB.Backends (Backend, LogType, initSolver)
 import qualified SMTLIB.Backends.Tests.Sources as Src
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -19,7 +19,7 @@ testBackend ::
   -- | A list of examples on which to run the backend.
   [Src.Source] ->
   -- | A function for logging the solver's activity.
-  (Builder -> IO ()) ->
+  (LogType -> LBS.ByteString -> IO ()) ->
   -- | A function that should create a backend, run a given
   -- computation and release the backend's resources.
   ((Backend -> Assertion) -> Assertion) ->

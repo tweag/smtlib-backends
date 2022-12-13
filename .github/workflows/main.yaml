@@ -16,6 +16,8 @@ jobs:
       with:
         extra_nix_config: |
           access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+    - name: Update cabal
+      run: nix develop --accept-flake-config --command cabal update
     - name: Processes test
       run: nix develop --accept-flake-config --command cabal test
     - name: Z3 backend test
