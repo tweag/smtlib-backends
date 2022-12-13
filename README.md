@@ -33,7 +33,7 @@ documented in [SMTLIB.Backends.Backend](src/SMTLIB/Backends.hs). See
 
 ## Motivation
 
-It was created because there are a lot of Haskell projects using SMT solvers
+This library was created because there are a lot of Haskell projects using SMT solvers
 through SMT-LIB, but most of them only use solvers through external processes
 and implement the interaction with the solver themselves. But running solvers
 as external processes can be quite slow, hence this library aims to provide
