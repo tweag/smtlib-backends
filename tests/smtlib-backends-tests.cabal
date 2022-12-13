@@ -29,7 +29,7 @@ library
   exposed-modules:  SMTLIB.Backends.Tests
   other-modules:    SMTLIB.Backends.Tests.Sources
   build-depends:
-      base             >=4.15 && <4.17.0
+      base             >=4.14 && <4.17.0
     , smtlib-backends
     , tasty
     , tasty-hunit
