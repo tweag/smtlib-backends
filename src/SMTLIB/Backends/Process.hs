@@ -52,6 +52,8 @@ data Config = Config
     -- | Arguments to pass to the solver's command.
     args :: [String],
     -- | A function for logging the solver process' creation, errors and termination.
+    -- If you want line breaks between each log message, you need to implement
+    -- it yourself, e.g use @`LBS.putStr` . (<> "\n")@.
     logger :: LBS.ByteString -> IO ()
   }
 

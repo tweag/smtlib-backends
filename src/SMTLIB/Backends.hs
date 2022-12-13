@@ -78,7 +78,8 @@ initSolver ::
   -- | whether to enable lazy mode (see 'Solver' for the meaning of this flag)
   Bool ->
   -- | function for logging the solver's activity;
-  -- it should manually jump lines if needed
+  -- if you want line breaks between each log message, you need to implement
+  -- it yourself, e.g use @`LBS.putStr` . (<> "\n")@.
   (LBS.ByteString -> IO ()) ->
   IO Solver
 initSolver solverBackend lazy logger = do
