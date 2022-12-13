@@ -46,7 +46,7 @@ assertions = Source "assertions" $ \solver -> do
   _ <- command solver "(get-assertions)"
   ackCommand solver "(pop 1)"
   _ <- command solver "(get-assertions)"
-  ackCommand solver "(exit)"
+  return ()
 
 assignments = Source "assignments" $ \solver -> do
   ackCommand solver "(set-option :produce-assignments true)"
@@ -57,20 +57,20 @@ assignments = Source "assignments" $ \solver -> do
   ackCommand solver "(assert (not (=(! (and (! p :named P) q) :named PQ) (! r :named R))))"
   _ <- command solver "(check-sat)"
   _ <- command solver "(get-assignment)"
-  ackCommand solver "(exit)"
+  return ()
 
 boolean = Source "boolean" $ \solver -> do
   ackCommand solver "(set-logic QF_UF)"
   ackCommand solver "(declare-const p Bool)"
   ackCommand solver "(assert (and p (not p)))"
   _ <- command solver "(check-sat)"
-  ackCommand solver "(exit)"
+  return ()
 
 info = Source "info" $ \solver -> do
   _ <- command solver "(get-info :name)"
   _ <- command solver "(get-info :version )"
   _ <- command solver "(get-info :authors )"
-  ackCommand solver "(exit)"
+  return ()
 
 integerArithmetic = Source "integer arithmetic" $ \solver -> do
   ackCommand solver "(set-logic QF_LIA)"
@@ -78,7 +78,7 @@ integerArithmetic = Source "integer arithmetic" $ \solver -> do
   ackCommand solver "(declare-const y Int)"
   ackCommand solver "(assert (= (- x y) (+ x (- y) 1)))"
   _ <- command solver "(check-sat)"
-  ackCommand solver "(exit)"
+  return ()
 
 modelingSequentialCodeSSA = Source "modeling sequential code (SSA)" $ \solver -> do
   ackCommand solver "(set-logic QF_UFLIA)"
@@ -94,7 +94,7 @@ modelingSequentialCodeSSA = Source "modeling sequential code (SSA)" $ \solver ->
   _ <- command solver "(check-sat)"
   _ <- command solver "(get-value ((x 0) (y 0) (x 1) (y 1)))"
   _ <- command solver "(get-model)"
-  ackCommand solver "(exit)"
+  return ()
 
 modelingSequentialCodeBitvectors = Source "modeling sequential code (bitvectors)" $
   \solver -> do
@@ -110,7 +110,7 @@ modelingSequentialCodeBitvectors = Source "modeling sequential code (bitvectors)
     ackCommand solver "(assert (= x_2 (bvsub x_1 y_1)))"
     ackCommand solver "(assert (not (and (= x_2 y_0) (= y_1 x_0))))"
     _ <- command solver "(check-sat)"
-    ackCommand solver "(exit)"
+    return ()
 
 scopes = Source "scopes" $ \solver -> do
   ackCommand solver "(set-logic QF_LIA)"
@@ -125,7 +125,7 @@ scopes = Source "scopes" $ \solver -> do
   ackCommand solver "(assert (= (- x y) 3))"
   _ <- command solver "(check-sat)"
   ackCommand solver "(pop 1)"
-  ackCommand solver "(exit)"
+  return ()
 
 sorts = Source "sorts" $ \solver -> do
   ackCommand solver "(set-logic QF_UF)"
@@ -146,7 +146,7 @@ sorts = Source "sorts" $ \solver -> do
   ackCommand solver "(assert (distinct c d e))"
   _ <- command solver "(check-sat)"
   ackCommand solver "(pop 1)"
-  ackCommand solver "(exit)"
+  return ()
 
 unsatCores = Source "unsat cores" $ \solver -> do
   ackCommand solver "(set-option :produce-unsat-cores true)"
@@ -163,7 +163,7 @@ unsatCores = Source "unsat cores" $ \solver -> do
   ackCommand solver "(assert (! (not (=> q s)) :named NQS))"
   _ <- command solver "(check-sat)"
   _ <- command solver "(get-unsat-core)"
-  ackCommand solver "(exit)"
+  return ()
 
 valuesOrModels = Source "values or models" $ \solver -> do
   ackCommand solver "(set-option :produce-models true)"
@@ -175,4 +175,4 @@ valuesOrModels = Source "values or models" $ \solver -> do
   _ <- command solver "(check-sat)"
   _ <- command solver "(get-value (x y))"
   _ <- command solver "(get-model)"
-  ackCommand solver "(exit)"
+  return ()
