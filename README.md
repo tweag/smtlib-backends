@@ -45,7 +45,7 @@ different projects.
 
 ### Code formatting
 
-We format our code using [ormolu](https://github.com/tweag/ormolu) (more specifically the version from [NixOS/nixpkgs](https://github.com/NixOS/nixpkgs)'s master branch). It is thus recommended to add the following script as your `.git/hooks/pre-commit`:
+We format our code using [ormolu](https://github.com/tweag/ormolu) (more specifically the version from [NixOS/nixpkgs](https://github.com/NixOS/nixpkgs)'s master branch). The `.cabal` files are formatted using [`cabal-fmt`](https://github.com/phadej/cabal-fmt). It is thus recommended to add the following script as your `.git/hooks/pre-commit`:
 ```
 #!/usr/bin/env bash
 set -e
@@ -60,4 +60,5 @@ do
   ormolu --command ormolu --mode inplace "$(pwd)/$sourceFilePath"
   git add $sourceFilePath
 done;
+cabal-fmt --inplace $(find . -name '*.cabal')
 ```
