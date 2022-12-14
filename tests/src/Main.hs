@@ -8,10 +8,10 @@ main :: IO ()
 main = do
   defaultMain $
     testGroup
-      "backends"
+      "Tests"
       [ Examples.solverTests,
         testGroup
-          "process"
+          "process backend"
           [ testBackend "basic examples" sources $ \todo ->
               Process.with def $ todo . Process.toBackend,
             Examples.processTests
