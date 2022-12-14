@@ -51,10 +51,11 @@ data Config = Config
     exe :: String,
     -- | Arguments to pass to the solver's command.
     args :: [String],
-    -- | A function for logging the solver process' creation, errors and termination.
+    -- | A function for logging the solver process' messages on stderr and file
+    -- handle exceptions.
     -- If you want line breaks between each log message, you need to implement
     -- it yourself, e.g use @`LBS.putStr` . (<> "\n")@.
-    logger :: LBS.ByteString -> IO ()
+    reportError :: LBS.ByteString -> IO ()
   }
 
 -- | By default, use Z3 as an external process and ignore log messages.
@@ -87,7 +88,7 @@ new config = do
       forever
         ( do
             errs <- BS.hGetLine $ getStderr solverProcess
-            logger' $ errs
+            reportError' errs
         )
         `X.catch` \X.SomeException {} ->
           return ()
@@ -100,9 +101,9 @@ new config = do
         return
           ( h,
             IO.hClose h `X.catch` \ex ->
-              logger' $ BS.pack $ show (ex :: X.IOException)
+              reportError' $ BS.pack $ show (ex :: X.IOException)
           )
-    logger' = (logger config) . LBS.fromStrict
+    reportError' = (reportError config) . LBS.fromStrict
 
 -- | Wait for the process to exit and cleanup its resources.
 wait :: Handle -> IO ExitCode

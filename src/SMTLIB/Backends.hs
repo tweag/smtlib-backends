@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module SMTLIB.Backends (Backend (..), Solver, initSolver, command, ackCommand) where
+module SMTLIB.Backends (Backend (..), Solver, initSolver, command, command_) where
 
 import Data.ByteString.Builder (Builder)
 import qualified Data.ByteString.Lazy.Char8 as LBS
@@ -39,7 +39,7 @@ flushQueue q = atomicModifyIORef q $ \cmds ->
 -- commands isn't used and the commands are sent to the backend immediately. In
 -- lazy mode, commands whose output are not strictly necessary for the rest of the
 -- computation (typically the ones whose output should just be "success") and that
--- are sent through 'ackCommand' are not sent to the backend immediately, but
+-- are sent through 'command_' are not sent to the backend immediately, but
 -- rather written on the solver's queue. When a command whose output is actually
 -- necessary needs to be sent, the queue is flushed and sent as a batch to the
 -- backend.
@@ -103,8 +103,8 @@ command solver cmd = do
 -- In lazy mode, (unless the queue is flushed and evaluated
 -- right after) the command must not produce any output when evaluated, and
 -- its output is thus in particular not checked for correctness.
-ackCommand :: Solver -> Builder -> IO ()
-ackCommand solver cmd =
+command_ :: Solver -> Builder -> IO ()
+command_ solver cmd =
   case queue solver of
     Nothing -> do
       res <- send (backend solver) cmd
@@ -122,7 +122,7 @@ ackCommand solver cmd =
     trim = LBS.dropWhile isSpace . LBS.reverse . LBS.dropWhile isSpace . LBS.reverse
 
 setOption :: Solver -> Builder -> Builder -> IO ()
-setOption solver name value = ackCommand solver $ list ["set-option", ":" <> name, value]
+setOption solver name value = command_ solver $ list ["set-option", ":" <> name, value]
 
 list :: [Builder] -> Builder
 list bs = "(" <> mconcat (intersperse " " bs) <> ")"
