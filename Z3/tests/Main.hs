@@ -11,7 +11,7 @@ main :: IO ()
 main = do
   defaultMain $
     testGroup "Tests" $
-      [ testBackend "Examples" validSources z3,
+      [ testBackend "Basic examples" validSources z3,
         testBackend "Error handling" failingSources z3
       ]
   where

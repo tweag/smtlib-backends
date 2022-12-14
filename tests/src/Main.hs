@@ -12,7 +12,7 @@ main = do
       [ Examples.solverTests,
         testGroup
           "process backend"
-          [ testBackend "basic examples" sources $ \todo ->
+          [ testBackend "Basic examples" sources $ \todo ->
               Process.with def $ todo . Process.toBackend,
             Examples.processTests
           ]
