@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 -- | A module providing functions useful for testing a backend for SimpleSMT.
 module SMTLIB.Backends.Tests
   ( testBackend,
@@ -6,8 +8,7 @@ module SMTLIB.Backends.Tests
   )
 where
 
-import Data.ByteString.Lazy.Char8 as LBS
-import SMTLIB.Backends (Backend, LogType, initSolver)
+import SMTLIB.Backends (Backend, command, initSolver)
 import qualified SMTLIB.Backends.Tests.Sources as Src
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -18,13 +19,11 @@ testBackend ::
   String ->
   -- | A list of examples on which to run the backend.
   [Src.Source] ->
-  -- | A function for logging the solver's activity.
-  (LogType -> LBS.ByteString -> IO ()) ->
   -- | A function that should create a backend, run a given
   -- computation and release the backend's resources.
   ((Backend -> Assertion) -> Assertion) ->
   TestTree
-testBackend name sources logger with =
+testBackend name sources with =
   testGroup name $ do
     lazyMode <- [False, True]
     return $
@@ -38,5 +37,8 @@ testBackend name sources logger with =
           return $
             testCase (Src.name source) $
               with $ \backend -> do
-                solver <- initSolver backend lazyMode logger
+                solver <- initSolver backend lazyMode
                 Src.run source solver
+                -- ensure the sources consisting only of queued commands also run
+                _ <- command solver "(get-info :name)"
+                return ()

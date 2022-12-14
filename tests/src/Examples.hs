@@ -4,7 +4,7 @@ module Examples (process) where
 
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Default (def)
-import SMTLIB.Backends (ackCommand, command, initSolverNoLogging)
+import SMTLIB.Backends (command, command_, initSolver)
 import qualified SMTLIB.Backends.Process as Process
 import System.Exit (ExitCode (ExitSuccess))
 import System.IO (BufferMode (LineBuffering), hSetBuffering)
@@ -35,8 +35,8 @@ processBasicUse =
       -- first, we make the process handle into an actual backend
       let backend = Process.toBackend handle
       -- then, we create a solver out of the backend
-      -- we disable logging, and enable queuing (it's faster !)
-      solver <- initSolverNoLogging backend True
+      -- we enable queuing (it's faster !)
+      solver <- initSolver backend True
       -- we send a basic command to the solver and ignore the response
       -- we can write the command as a simple string because we have enabled the
       -- OverloadedStrings pragma
@@ -51,7 +51,7 @@ processSetOptions =
         Process.Config
           { Process.exe = "z3",
             Process.args = ["-in", "solver.timeout=10000"],
-            Process.logger = LBS.putStr . (`LBS.snoc` '\n')
+            Process.reportError = LBS.putStr . (`LBS.snoc` '\n')
           }
    in Process.with myConfig $ \handle -> do
         -- since the `Process` module exposes its `Handle` datatype entirely, we can also
@@ -62,7 +62,7 @@ processSetOptions =
         hSetBuffering stdin LineBuffering
         -- we can then use the backend as before
         let backend = Process.toBackend handle
-        solver <- initSolverNoLogging backend True
+        solver <- initSolver backend True
         _ <- command solver "(get-info :name)"
         return ()
 
@@ -72,10 +72,10 @@ processManualExit = do
   -- launch a new process with `Process.new`
   handle <- Process.new def
   let backend = Process.toBackend handle
-  -- here we disable queuing so that we can use `ackCommand` to ensure the exit
+  -- here we disable queuing so that we can use `command_` to ensure the exit
   -- command will be received successfully
-  solver <- initSolverNoLogging backend False
-  ackCommand solver "(exit)"
+  solver <- initSolver backend False
+  command_ solver "(exit)"
   -- `Process.wait` takes care of cleaning resources and waits for the process to
   -- exit
   exitCode <- Process.wait handle

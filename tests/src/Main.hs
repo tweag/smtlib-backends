@@ -11,10 +11,8 @@ main = do
       "backends"
       [ testGroup
           "process"
-          [ testBackend "basic examples" sources noLogging $ \todo ->
+          [ testBackend "basic examples" sources $ \todo ->
               Process.with def $ todo . Process.toBackend,
             Examples.process
           ]
       ]
-  where
-    noLogging = \_ _ -> return ()
