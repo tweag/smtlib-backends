@@ -1,10 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Examples (process) where
+module Examples (solverTests, processTests) where
 
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Default (def)
-import SMTLIB.Backends (command, command_, initSolver)
+import SMTLIB.Backends (Backend, command, command_, initSolver)
 import qualified SMTLIB.Backends.Process as Process
 import System.Exit (ExitCode (ExitSuccess))
 import System.IO (BufferMode (LineBuffering), hSetBuffering)
@@ -12,9 +12,36 @@ import System.Process.Typed (getStdin)
 import Test.Tasty
 import Test.Tasty.HUnit
 
+-- | The examples for the `Backends` module.
+solverTests :: TestTree
+solverTests =
+  testGroup
+    "API use examples"
+    [ testCase "basic use" solverBasicUse
+    ]
+
+-- | Basic use of the `Solver` datatype.
+solverBasicUse :: IO ()
+solverBasicUse =
+  -- we need a solver backend to evaluate our commands
+  -- examples on how to create such backends can be found in the corresponding
+  -- sections, e.g. `processBasicUse`
+  withBackend $ \backend -> do
+    -- then, we create a solver out of the backend
+    -- we enable queuing (it's faster !)
+    solver <- initSolver backend True
+    -- we send a basic command to the solver and ignore the response
+    -- we can write the command as a simple string because we have enabled the
+    -- OverloadedStrings pragma
+    _ <- command solver "(get-info :name)"
+    return ()
+  where
+    withBackend :: (Backend -> IO a) -> IO a
+    withBackend = Process.with def . (. Process.toBackend)
+
 -- | The examples for the `Process` backend.
-process :: TestTree
-process =
+processTests :: TestTree
+processTests =
   testGroup
     "API use examples"
     [ testCase "basic use" processBasicUse,

@@ -1,5 +1,5 @@
 import Data.Default (def)
-import Examples
+import qualified Examples
 import qualified SMTLIB.Backends.Process as Process
 import SMTLIB.Backends.Tests (sources, testBackend)
 import Test.Tasty
@@ -9,10 +9,11 @@ main = do
   defaultMain $
     testGroup
       "backends"
-      [ testGroup
+      [ Examples.solverTests,
+        testGroup
           "process"
           [ testBackend "basic examples" sources $ \todo ->
               Process.with def $ todo . Process.toBackend,
-            Examples.process
+            Examples.processTests
           ]
       ]
