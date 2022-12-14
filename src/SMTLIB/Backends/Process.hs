@@ -112,12 +112,16 @@ wait handle = do
   waitExitCode $ process handle
 
 -- | Terminate the process, wait for it to actually exit and cleanup its resources.
+-- Don't use this if you're manually stopping the solver process by sending an
+-- @(exit)@ command. Use `wait` instead.
 close :: Handle -> IO ()
 close handle = do
   cancel $ errorReader handle
   stopProcess $ process handle
 
 -- | Create a solver process, use it to make a computation and stop it.
+-- Don't use this if you're manually stopping the solver process by sending an
+-- @(exit)@ command. Use @\config -> `bracket` (`new` config) `wait`@ instead.
 with ::
   -- | The solver process' configuration.
   Config ->
