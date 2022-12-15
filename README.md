@@ -7,8 +7,8 @@ We currently provide two different backends: a classic backend implemented by
 running solvers as external processes, and a faster backend, available in the
 `smtlib-backends-z3` package, implemented using Z3 as a library.
 
-In addition, the API allows to queue commands which are sent to the logger
-only when a response is demanded, as we have observed this to reduce the communication
+In addition, the API allows for queuing commands so that they are sent to the backend
+only when a response is needed, as we have observed this to reduce the communication
 overhead. See the documentation of
 [SMTLIB.Backends.Solver](src/SMTLIB/Backends.hs) for the details.
 
