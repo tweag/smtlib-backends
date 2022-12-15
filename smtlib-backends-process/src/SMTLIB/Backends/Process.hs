@@ -5,7 +5,7 @@
 {-# LANGUAGE ViewPatterns #-}
 
 -- | A module providing a backend that launches solvers as external processes.
-module SMTLIB.Backends.Internal.Process
+module SMTLIB.Backends.Process
   ( Config (..),
     Handle,
     new,
