@@ -57,7 +57,7 @@ filesToFormat="$(git --no-pager diff --name-status --no-color --cached | \
 echo "files to format $filesToFormat"
 for sourceFilePath in $filesToFormat
 do
-  ormolu --command ormolu --mode inplace "$(pwd)/$sourceFilePath"
+  ormolu --mode inplace "$(pwd)/$sourceFilePath"
   git add $sourceFilePath
 done;
 cabal-fmt --inplace $(find . -name '*.cabal')
