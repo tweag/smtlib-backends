@@ -16,8 +16,9 @@
         pkgs = nixpkgs.legacyPackages.${system};
         hpkgs = pkgs.haskellPackages;
         smtlib-backends = hpkgs.callCabal2nix "smtlib-backends" ./. {};
-        smtlib-backends-tests = hpkgs.callCabal2nix "smtlib-backends-tests" ./tests {inherit smtlib-backends;};
-        smtlib-backends-z3 = hpkgs.callCabal2nix "smtlib-backends-z3" ./Z3 {
+        smtlib-backends-process = hpkgs.callCabal2nix "smtlib-backends-process" ./smtlib-backends-process { inherit smtlib-backends smtlib-backends-tests; };
+        smtlib-backends-tests = hpkgs.callCabal2nix "smtlib-backends-tests" ./smtlib-backends-tests {inherit smtlib-backends;};
+        smtlib-backends-z3 = hpkgs.callCabal2nix "smtlib-backends-z3" ./smtlib-backends-z3 {
           inherit smtlib-backends smtlib-backends-tests;
         };
       in {
@@ -27,6 +28,7 @@
           default = hpkgs.shellFor {
             packages = p: [
               smtlib-backends
+              smtlib-backends-process
               smtlib-backends-tests
               smtlib-backends-z3
             ];
