@@ -28,8 +28,8 @@ using `cabal build` and `cabal test`.
 
 Currently, backends only need to provide a function to submit queries, as
 documented in [SMTLIB.Backends.Backend](src/SMTLIB/Backends.hs). See
-[SMTLIB.Backends.Process.toBackend](src/SMTLIB/Backends/Process.hs) or
-[SMTLIB.Backends.Z3.toBackend](Z3/src/SMTLIB/Backends/Z3.hs) for examples.
+[SMTLIB.Backends.Process.toBackend](smtlib-backends-process/src/SMTLIB/Backends/Process.hs) or
+[SMTLIB.Backends.Z3.toBackend](smtlib-backends-z3/src/SMTLIB/Backends/Z3.hs) for examples.
 
 ## Motivation
 

@@ -15,13 +15,13 @@ cabal-version: >=1.10
 source-repository head
   type:     git
   location: https://github.com/tweag/smtlib-backends
-  subdir:   tests
+  subdir:   smtlib-backends-tests
 
 source-repository this
   type:     git
   location: https://github.com/tweag/smtlib-backends
   tag:      0.1
-  subdir:   tests
+  subdir:   smtlib-backends-tests
 
 library
   ghc-options:      -Wall -Wunused-packages

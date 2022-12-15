@@ -17,11 +17,11 @@ jobs:
         extra_nix_config: |
           access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
     - name: Update cabal
-      run: nix develop --accept-flake-config --command cabal update
-    - name: Processes test
-      run: nix develop --accept-flake-config --command cabal test
+      run: nix develop --accept-flake-config .#lightweight --command cabal update
+    - name: Processes backend test
+      run: nix develop --accept-flake-config .#lightweight --command cabal test smtlib-backends-process
     - name: Z3 backend test
-      run: nix develop --accept-flake-config --command cabal test Z3
+      run: nix develop --accept-flake-config .#lightweight --command cabal test smtlib-backends-z3
 
   formatting:
     runs-on: ubuntu-22.04

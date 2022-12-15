@@ -16,20 +16,28 @@
         pkgs = nixpkgs.legacyPackages.${system};
         hpkgs = pkgs.haskellPackages;
         smtlib-backends = hpkgs.callCabal2nix "smtlib-backends" ./. {};
-        smtlib-backends-tests = hpkgs.callCabal2nix "smtlib-backends-tests" ./tests {inherit smtlib-backends;};
-        smtlib-backends-z3 = hpkgs.callCabal2nix "smtlib-backends-z3" ./Z3 {
+        smtlib-backends-process = hpkgs.callCabal2nix "smtlib-backends-process" ./smtlib-backends-process {inherit smtlib-backends smtlib-backends-tests;};
+        smtlib-backends-tests = hpkgs.callCabal2nix "smtlib-backends-tests" ./smtlib-backends-tests {inherit smtlib-backends;};
+        smtlib-backends-z3 = hpkgs.callCabal2nix "smtlib-backends-z3" ./smtlib-backends-z3 {
           inherit smtlib-backends smtlib-backends-tests;
         };
       in {
         formatter = pkgs.alejandra;
 
-        devShells = {
+        devShells = let
+          ## Needed by Z3 tests and haskell language server
+          shellHook = ''
+            export LD_LIBRARY_PATH="${pkgs.z3.lib}/lib:''${LD_LIBRARY_PATH:+:}"
+          '';
+          packages = p: [
+            smtlib-backends
+            smtlib-backends-tests
+            smtlib-backends-process
+            smtlib-backends-z3
+          ];
+        in {
           default = hpkgs.shellFor {
-            packages = p: [
-              smtlib-backends
-              smtlib-backends-tests
-              smtlib-backends-z3
-            ];
+            inherit packages;
 
             withHoogle = true;
 
@@ -42,10 +50,14 @@
               ])
               ++ [pkgs.z3];
 
-            ## Needed by the haskell-language-server
-            shellHook = ''
-              export LD_LIBRARY_PATH="${pkgs.z3.lib}/lib:''${LD_LIBRARY_PATH:+:}"
-            '';
+            inherit shellHook;
+          };
+
+          ## Lightweight development shell.
+          lightweight = hpkgs.shellFor {
+            buildInputs = with pkgs; [ghc cabal-install z3];
+            inherit packages;
+            inherit shellHook;
           };
         };
       });
