@@ -39,7 +39,8 @@ solverBasicUse =
     withBackend :: (Backend -> IO a) -> IO a
     withBackend = Process.with def . (. Process.toBackend)
 
--- | The examples for the `Process` backend.
+-- | The examples for the `Process` backend (running solvers as external
+-- processes).
 processTests :: TestTree
 processTests =
   testGroup

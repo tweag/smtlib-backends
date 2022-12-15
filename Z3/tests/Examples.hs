@@ -7,7 +7,7 @@ import qualified SMTLIB.Backends.Z3 as Z3
 import Test.Tasty
 import Test.Tasty.HUnit
 
--- | The examples for the `Process` backend.
+-- | The examples for the `Z3` backend (using Z3 as a library).
 z3Tests :: TestTree
 z3Tests =
   testGroup
