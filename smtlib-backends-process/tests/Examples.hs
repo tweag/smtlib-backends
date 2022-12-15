@@ -55,6 +55,9 @@ setOptions =
    in Process.with myConfig $ \handle -> do
         -- since the 'Process' module exposes its 'Handle' datatype entirely, we can also
         -- set the options of the underlying process
+        -- you probably won't need to do this as the library already sets these
+        -- options to ensure the communication with the solvers is as fast as
+        -- possible
         let p = Process.process handle
             stdin = getStdin p
         -- for instance here we change the buffering mode of the process' input channel
