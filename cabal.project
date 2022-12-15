@@ -1,3 +1,4 @@
 packages: ./
-          smtlib-backends-z3/
+          smtlib-backends-process/
           smtlib-backends-tests/
+          smtlib-backends-z3/
