@@ -54,7 +54,7 @@ data Config = Config
     -- | A function for logging the solver process' messages on stderr and file
     -- handle exceptions.
     -- If you want line breaks between each log message, you need to implement
-    -- it yourself, e.g use @`LBS.putStr` . (<> "\n")@.
+    -- it yourself, e.g use @'LBS.putStr' . (<> "\n")@.
     reportError :: LBS.ByteString -> IO ()
   }
 

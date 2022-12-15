@@ -7,17 +7,17 @@ import qualified SMTLIB.Backends.Z3 as Z3
 import Test.Tasty
 import Test.Tasty.HUnit
 
--- | The examples for the `Z3` backend (using Z3 as a library).
+-- | The examples for the 'Z3' backend (using Z3 as a library).
 z3Tests :: TestTree
 z3Tests =
   testGroup
     "API use examples"
     [testCase "basic use" z3BasicUse]
 
--- | Basic use of the `Z3` backend.
+-- | Basic use of the 'Z3' backend.
 z3BasicUse :: IO ()
 z3BasicUse =
-  -- `Z3.with` runs a computation using the `Z3` backend
+  -- 'Z3.with' runs a computation using the 'Z3' backend
   Z3.with $ \handle -> do
     -- first, we make the z3 handle into an actual backend
     let backend = Z3.toBackend handle
