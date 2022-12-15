@@ -56,7 +56,7 @@ processBasicUse =
   -- `Process.with` runs a computation using the `Process` backend
   Process.with
     -- the configuration type `Process.Config` is an instance of the `Default` class
-    -- we can thus use a default configuration for the backend with the keyword `def`
+    -- we can thus use a default configuration for the backend with the `def` method
     -- this default configuration uses Z3 as an external process and disables logging
     def
     $ \handle -> do
