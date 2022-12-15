@@ -94,7 +94,8 @@ processSetOptions =
         _ <- command solver "(get-info :name)"
         return ()
 
--- | An example of how to close the `Process` backend's underlying process manually.
+-- | An example of how to close the `Process` backend's underlying process manually,
+-- instead of relying on 'Process.with' or 'Process.close'.
 processManualExit :: IO ()
 processManualExit = do
   -- launch a new process with `Process.new`
