@@ -60,6 +60,8 @@ data Config = Config
 
 -- | By default, use Z3 as an external process and ignore log messages.
 instance Default Config where
+  -- if you change this, make sure to also update the comment two lines above
+  -- as well as the one in @smtlib-backends-process/tests/Examples.hs@
   def = Config "z3" ["-in"] $ const $ return ()
 
 data Handle = Handle
