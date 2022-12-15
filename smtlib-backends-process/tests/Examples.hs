@@ -42,7 +42,7 @@ basicUse =
       _ <- command solver "(get-info :name)"
       return ()
 
--- | An example of how to set options for the 'Process' backend.
+-- | An example of how to change the default settings of the 'Process' backend.
 setOptions :: IO ()
 setOptions =
   -- here we use a custom-made configuration
@@ -54,9 +54,9 @@ setOptions =
           }
    in Process.with myConfig $ \handle -> do
         -- since the 'Process' module exposes its 'Handle' datatype entirely, we can also
-        -- set the options of the underlying process
-        -- you probably won't need to do this as the library already sets these
-        -- options to ensure the communication with the solvers is as fast as
+        -- change the settings of the underlying process
+        -- you probably won't need to do this as the library already choose these
+        -- settings to ensure the communication with the solvers is as fast as
         -- possible
         let p = Process.process handle
             stdin = getStdin p
