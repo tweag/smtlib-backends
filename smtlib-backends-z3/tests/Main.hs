@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import qualified Data.ByteString.Lazy.Char8 as LBS
+import Examples (examples)
 import SMTLIB.Backends
 import SMTLIB.Backends.Tests
 import qualified SMTLIB.Backends.Z3 as Z3
@@ -11,7 +12,8 @@ main :: IO ()
 main = do
   defaultMain $
     testGroup "Tests" $
-      [ testBackend "Examples" validSources z3,
+      [ testBackend "Basic examples" validSources z3,
+        testGroup "API usage examples" examples,
         testBackend "Error handling" failingSources z3
       ]
   where
