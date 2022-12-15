@@ -79,7 +79,7 @@ processSetOptions =
         Process.Config
           { Process.exe = "z3",
             Process.args = ["-in", "solver.timeout=10000"],
-            Process.reportError = LBS.putStr . ('LBS.snoc' '\n')
+            Process.reportError = LBS.putStr . (`LBS.snoc` '\n')
           }
    in Process.with myConfig $ \handle -> do
         -- since the 'Process' module exposes its 'Handle' datatype entirely, we can also
