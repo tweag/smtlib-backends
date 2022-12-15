@@ -2,7 +2,8 @@ name:               smtlib-backends-tests
 version:            0.2
 synopsis:           Testing SMT-LIB backends.
 description:
-  This library provides common functions and values used for testing SMT-LIB backends, as provided by the smtlib-backends library.
+  This library provides common functions and values used for testing SMT-LIB
+  backends, as provided by the smtlib-backends library.
 
 license:            MIT
 license-file:       LICENSE

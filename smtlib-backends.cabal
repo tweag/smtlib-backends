@@ -4,7 +4,10 @@ synopsis:
   Low-level functions for SMT-LIB-based interaction with SMT solvers. 
 
 description:
-  This library provides an extensible interface for interacting with SMT solvers using SMT-LIB. The smtlib-backends-process provides a backend that runs solvers as external processes, and the smtlib-backends-z3 package provides a backend that uses inlined calls to Z3's C API.
+  This library provides an extensible interface for interacting with SMT solvers
+  using SMT-LIB. The smtlib-backends-process provides a backend that runs solvers
+  as external processes, and the smtlib-backends-z3 package provides a backend that
+  uses inlined calls to Z3's C API.
 
 license:            MIT
 license-file:       LICENSE
