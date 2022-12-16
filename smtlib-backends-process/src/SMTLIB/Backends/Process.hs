@@ -123,7 +123,7 @@ close handle = do
 
 -- | Create a solver process, use it to make a computation and stop it.
 -- Don't use this if you're manually stopping the solver process by sending an
--- @(exit)@ command. Use @\config -> `bracket` (`new` config) `wait`@ instead.
+-- @(exit)@ command. Use @\\config -> `System.IO.bracket` (`new` config) `wait`@ instead.
 with ::
   -- | The solver process' configuration.
   Config ->
