@@ -7,7 +7,7 @@
 -- | A module providing a backend that launches solvers as external processes.
 module SMTLIB.Backends.Process
   ( Config (..),
-    Handle,
+    Handle (..),
     new,
     wait,
     close,
@@ -54,12 +54,14 @@ data Config = Config
     -- | A function for logging the solver process' messages on stderr and file
     -- handle exceptions.
     -- If you want line breaks between each log message, you need to implement
-    -- it yourself, e.g use @`LBS.putStr` . (<> "\n")@.
+    -- it yourself, e.g use @'LBS.putStr' . (<> "\n")@.
     reportError :: LBS.ByteString -> IO ()
   }
 
 -- | By default, use Z3 as an external process and ignore log messages.
 instance Default Config where
+  -- if you change this, make sure to also update the comment two lines above
+  -- as well as the one in @smtlib-backends-process/tests/Examples.hs@
   def = Config "z3" ["-in"] $ const $ return ()
 
 data Handle = Handle
@@ -121,7 +123,7 @@ close handle = do
 
 -- | Create a solver process, use it to make a computation and stop it.
 -- Don't use this if you're manually stopping the solver process by sending an
--- @(exit)@ command. Use @\config -> `bracket` (`new` config) `wait`@ instead.
+-- @(exit)@ command. Use @\\config -> `System.IO.bracket` (`new` config) `wait`@ instead.
 with ::
   -- | The solver process' configuration.
   Config ->

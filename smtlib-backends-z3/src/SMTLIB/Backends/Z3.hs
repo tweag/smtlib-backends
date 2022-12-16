@@ -60,7 +60,7 @@ new = do
   {-
   We set the error handler to ignore errors. That way if an error happens it doesn't
   cause the whole program to crash, and the error message is simply transmitted to
-  the Haskell layer inside the output of the `send` method.
+  the Haskell layer inside the output of the 'send' method.
   -}
   ctx <-
     newForeignPtr ctxFinalizer

@@ -3,17 +3,21 @@
 This Haskell library provides different low-level ways of interacting with SMT
 solvers using [SMT-LIB](https://smtlib.cs.uiowa.edu/).
 
-We currently provide two different backends: a classic backend implemented by
-running solvers as external processes, and a faster backend, available in the
-`smtlib-backends-z3` package, implemented using Z3 as a library.
+We currently provide two different backends: a classic backend, available in the 
+`smtlib-backends-process` package, implemented by running solvers as external processes, 
+and a faster backend, available in the `smtlib-backends-z3` package, implemented using Z3
+as a library.
 
-In addition, the API allows for queuing commands so that they are sent to the backend
+In addition, the API allows for queuing commands so that they are sent to the backend 
 only when a response is needed, as we have observed this to reduce the communication
 overhead. See the documentation of
 [SMTLIB.Backends.Solver](src/SMTLIB/Backends.hs) for the details.
 
-Logging of queries, errors and results is also supported as shown in the
-example programs that will be added soon.
+## Usage
+
+Examples of how to use the different backends are included in their respective test-suites:
+- [examples for the `Process` backend](smtlib-backends-process/tests/Examples.hs)
+- [examples for the `Z3` backend](smtlib-backends-z3/tests/Examples.hs)
 
 ## Building and testing
 
@@ -46,7 +50,7 @@ different projects.
 ### Code formatting
 
 We format our code using [ormolu](https://github.com/tweag/ormolu) (more specifically the version from [NixOS/nixpkgs](https://github.com/NixOS/nixpkgs)'s master branch). The `.cabal` files are formatted using [`cabal-fmt`](https://github.com/phadej/cabal-fmt). It is thus recommended to add the following script as your `.git/hooks/pre-commit`:
-```
+```bash
 #!/usr/bin/env bash
 set -e
 
