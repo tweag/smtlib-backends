@@ -12,7 +12,7 @@ maintainer:         quentin.aristote@tweag.io
 build-type:         Simple
 category:           SMT
 cabal-version:      >=1.10
-extra-source-files: CHANGELOG.org
+extra-source-files: CHANGELOG.md
 
 source-repository head
   type:     git
