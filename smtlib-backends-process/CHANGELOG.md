@@ -1,4 +1,4 @@
-# v0.1
+# v0.2
 split `smtlib-backends`'s `Process` module into its own library
 ## `Config` datatype
 - move the logger function into it
