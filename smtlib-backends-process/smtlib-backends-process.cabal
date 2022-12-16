@@ -44,12 +44,16 @@ test-suite test
   type:             exitcode-stdio-1.0
   hs-source-dirs:   tests
   main-is:          Main.hs
+  other-modules:    Examples
   ghc-options:      -threaded -Wall -Wunused-packages
   build-depends:
       base
     , data-default
+    , smtlib-backends
     , smtlib-backends-process
     , smtlib-backends-tests
     , tasty
+    , tasty-hunit
+    , typed-process
 
   default-language: Haskell2010
