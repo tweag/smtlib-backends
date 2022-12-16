@@ -48,6 +48,7 @@ test-suite test
   ghc-options:      -threaded -Wall -Wunused-packages
   build-depends:
       base
+    , bytestring
     , data-default
     , smtlib-backends
     , smtlib-backends-process
