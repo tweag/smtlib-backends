@@ -16,7 +16,7 @@ overhead. See the documentation of
 ## Usage
 
 Examples of how to use the different backends are included in their respective test-suites:
-- [examples for the `Process` backend](smtlib-backends-process/tests/Examples.hs)
+- [examples for the `Process` backend](process/src/Examples.hs)
 - [examples for the `Z3` backend](smtlib-backends-z3/tests/Examples.hs)
 
 ## Building and testing
