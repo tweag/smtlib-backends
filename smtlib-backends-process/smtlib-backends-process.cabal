@@ -34,7 +34,7 @@ library
       async            >=2.2.4   && <2.3
     , base             >=4.14    && <4.18
     , bytestring       >=0.10.12 && <0.12
-    , data-default     ==0.7.1
+    , data-default     >=0.7.1   && <0.8 
     , smtlib-backends  >=0.2     && <0.3
     , typed-process    >=0.2.10  && <0.3
 
