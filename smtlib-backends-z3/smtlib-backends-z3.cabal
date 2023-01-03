@@ -32,8 +32,8 @@ library
   ghc-options:      -Wall -Wunused-packages
   exposed-modules:  SMTLIB.Backends.Z3
   build-depends:
-      base             >=4.14    && <4.17.0
-    , bytestring       >=0.10.12 && <0.11
+      base             >=4.14    && <4.18
+    , bytestring       >=0.10.12 && <0.12
     , containers       >=0.6.4   && <0.7
     , inline-c         >=0.9.1   && <0.10
     , smtlib-backends  >=0.2     && <0.3
