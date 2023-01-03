@@ -26,19 +26,19 @@ testBackend ::
 testBackend name sources with =
   testGroup name $ do
     lazyMode <- [False, True]
-    return $
-      testGroup
+    return
+      $ testGroup
         ( if lazyMode
             then "lazy"
             else "eager"
         )
-        $ do
-          source <- sources
-          return $
-            testCase (Src.name source) $
-              with $ \backend -> do
-                solver <- initSolver backend lazyMode
-                Src.run source solver
-                -- ensure the sources consisting only of queued commands also run
-                _ <- command solver "(get-info :name)"
-                return ()
+      $ do
+        source <- sources
+        return $
+          testCase (Src.name source) $
+            with $ \backend -> do
+              solver <- initSolver backend lazyMode
+              Src.run source solver
+              -- ensure the sources consisting only of queued commands also run
+              _ <- command solver "(get-info :name)"
+              return ()
