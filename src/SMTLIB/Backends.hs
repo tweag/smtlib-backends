@@ -1,6 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module SMTLIB.Backends (Backend (..), Solver, initSolver, command, command_) where
+module SMTLIB.Backends
+  ( Backend (..),
+    QueuingFlag (..),
+    Solver,
+    initSolver,
+    command,
+    command_,
+  )
+where
 
 import Data.ByteString.Builder (Builder)
 import qualified Data.ByteString.Lazy.Char8 as LBS
@@ -17,6 +25,9 @@ data Backend = Backend
   }
 
 type Queue = IORef Builder
+
+-- | A boolean-equivalent datatype indicating whether to enable queuing.
+data QueuingFlag = Queuing | NoQueuing
 
 -- | Push a command on the solver's queue of commands to evaluate.
 -- The command must not produce any output when evaluated, unless it is the last
@@ -35,14 +46,13 @@ flushQueue q = atomicModifyIORef q $ \cmds ->
 -- a function for logging the solver's activity, and an optional queue of commands
 -- to send to the backend.
 --
--- A solver can either be in eager mode or lazy mode. In eager mode, the queue of
--- commands isn't used and the commands are sent to the backend immediately. In
--- lazy mode, commands whose output are not strictly necessary for the rest of the
--- computation (typically the ones whose output should just be "success") and that
--- are sent through 'command_' are not sent to the backend immediately, but
--- rather written on the solver's queue. When a command whose output is actually
--- necessary needs to be sent, the queue is flushed and sent as a batch to the
--- backend.
+-- A solver can either be in eager (non-queuing) mode or lazy (queuing) mode. In
+-- eager mode, the queue of commands isn't used and the commands are sent to the
+-- backend immediately. In lazy mode, commands whose output are not strictly
+-- necessary for the rest of the computation (typically the ones whose output should just be "success") and that are sent through 'command_' are not sent to the backend
+-- immediately, but rather written on the solver's queue. When a command whose output
+-- is actually necessary needs to be sent, the queue is flushed and sent as a batch
+-- to the backend.
 --
 -- Lazy mode should be faster as there usually is a non-negligible constant
 -- overhead in sending a command to the backend. But since the commands are sent by
@@ -64,26 +74,27 @@ data Solver = Solver
 -- In particular, the "print-success" option is disabled in lazy mode. This should
 -- not be overriden manually.
 initSolver ::
-  Backend ->
   -- | whether to enable lazy mode (see 'Solver' for the meaning of this flag)
-  Bool ->
+  QueuingFlag ->
+  -- | the solver backend
+  Backend ->
   IO Solver
-initSolver solverBackend lazy = do
-  solverQueue <-
-    if lazy
-      then do
-        ref <- newIORef mempty
-        return $ Just ref
-      else return Nothing
+initSolver queuing solverBackend = do
+  solverQueue <- case queuing of
+    Queuing -> do
+      ref <- newIORef mempty
+      return $ Just ref
+    NoQueuing -> return Nothing
   let solver = Solver solverBackend solverQueue
-  if lazy
-    then return ()
-    else -- this should not be enabled when the queue is used, as it messes with parsing
-    -- the outputs of commands that are actually interesting
-    -- TODO checking for correctness and enabling laziness can be made compatible
-    -- but it would require the solver backends to return several outputs at once
-    -- alternatively, we may consider that the user wanting both features should
-    -- implement their own backend that deals with this
+  case queuing of
+    Queuing -> return ()
+    NoQueuing ->
+      -- this should not be enabled when the queue is used, as it messes with parsing
+      -- the outputs of commands that are actually interesting
+      -- TODO checking for correctness and enabling laziness can be made compatible
+      -- but it would require the solver backends to return several outputs at once
+      -- alternatively, we may consider that the user wanting both features should
+      -- implement their own backend that deals with this
       setOption solver "print-success" "true"
   setOption solver "produce-models" "true"
   return solver

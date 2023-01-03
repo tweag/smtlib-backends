@@ -2,7 +2,7 @@
 
 module Examples (examples) where
 
-import SMTLIB.Backends (command, initSolver)
+import SMTLIB.Backends (QueuingFlag (..), command, initSolver)
 import qualified SMTLIB.Backends.Z3 as Z3
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -21,7 +21,7 @@ basicUse =
     let backend = Z3.toBackend handle
     -- then, we create a solver out of the backend
     -- we enable queuing (it's faster !)
-    solver <- initSolver backend True
+    solver <- initSolver Queuing backend
     -- we send a basic command to the solver and ignore the response
     -- we can write the command as a simple string because we have enabled the
     -- OverloadedStrings pragma

@@ -1,3 +1,6 @@
+# v0.3-alpha
+- make test-suite compatible with `smtlib-backends-0.3`
+
 # v0.2
 split `smtlib-backends`'s `Process` module into its own library
 ## `Config` datatype

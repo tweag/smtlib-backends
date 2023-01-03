@@ -4,7 +4,7 @@ module Examples (examples) where
 
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Default (def)
-import SMTLIB.Backends (command, command_, initSolver)
+import SMTLIB.Backends (QueuingFlag (..), command, command_, initSolver)
 import qualified SMTLIB.Backends.Process as Process
 import System.Exit (ExitCode (ExitSuccess))
 import System.IO (BufferMode (LineBuffering), hSetBuffering)
@@ -35,7 +35,7 @@ basicUse =
       let backend = Process.toBackend handle
       -- then, we create a solver out of the backend
       -- we enable queuing (it's faster !)
-      solver <- initSolver backend True
+      solver <- initSolver Queuing backend
       -- we send a basic command to the solver and ignore the response
       -- we can write the command as a simple string because we have enabled the
       -- OverloadedStrings pragma
@@ -64,7 +64,7 @@ setOptions =
         hSetBuffering stdin LineBuffering
         -- we can then use the backend as before
         let backend = Process.toBackend handle
-        solver <- initSolver backend True
+        solver <- initSolver Queuing backend
         _ <- command solver "(get-info :name)"
         return ()
 
@@ -77,7 +77,7 @@ manualExit = do
   let backend = Process.toBackend handle
   -- here we disable queuing so that we can use 'command_' to ensure the exit
   -- command will be received successfully
-  solver <- initSolver backend False
+  solver <- initSolver NoQueuing backend
   command_ solver "(exit)"
   -- 'Process.wait' takes care of cleaning resources and waits for the process to
   -- exit
