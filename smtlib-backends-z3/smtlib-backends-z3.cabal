@@ -1,5 +1,5 @@
 name:               smtlib-backends-z3
-version:            0.2
+version:            0.3
 synopsis:           An SMT-LIB backend implemented using Z3's C API.
 description:
   This library implements an SMT-LIB backend (in the sense of the smtlib-backends
@@ -35,6 +35,7 @@ library
       base             >=4.14    && <4.18
     , bytestring       >=0.10.12 && <0.12
     , containers       >=0.6.4   && <0.7
+    , data-default     >=0.7     && <0.8
     , inline-c         >=0.9.1   && <0.10
     , smtlib-backends  >=0.2     && <0.3
 
@@ -59,6 +60,7 @@ test-suite test
   build-depends:
       base
     , bytestring
+    , data-default
     , smtlib-backends
     , smtlib-backends-tests
     , smtlib-backends-z3
