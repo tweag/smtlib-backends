@@ -49,10 +49,11 @@ flushQueue q = atomicModifyIORef q $ \cmds ->
 -- A solver can either be in eager (non-queuing) mode or lazy (queuing) mode. In
 -- eager mode, the queue of commands isn't used and the commands are sent to the
 -- backend immediately. In lazy mode, commands whose output are not strictly
--- necessary for the rest of the computation (typically the ones whose output should just be "success") and that are sent through 'command_' are not sent to the backend
--- immediately, but rather written on the solver's queue. When a command whose output
--- is actually necessary needs to be sent, the queue is flushed and sent as a batch
--- to the backend.
+-- necessary for the rest of the computation (typically the ones whose output should
+-- just be "success") and that are sent through 'command_' are not sent to the
+-- backend immediately, but rather written on the solver's queue. When a command
+-- whose output is actually necessary needs to be sent, the queue is flushed and
+-- sent as a batch to the backend.
 --
 -- Lazy mode should be faster as there usually is a non-negligible constant
 -- overhead in sending a command to the backend. But since the commands are sent by
