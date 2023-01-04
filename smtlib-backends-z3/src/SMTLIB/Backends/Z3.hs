@@ -75,7 +75,7 @@ new config = do
   -- we don't set a finalizer for this object as we manually delete it during the
   -- context's creation
   cfg <- [CU.exp| Z3_config { Z3_mk_config() } |]
-  flip mapM_ (parameters config) $ \(paramId, paramValue) ->
+  forM_ (parameters config) $ \(paramId, paramValue) ->
     [CU.exp| void { Z3_set_param_value($(Z3_config cfg),
                                        $bs-ptr:paramId,
                                        $bs-ptr:paramValue)
