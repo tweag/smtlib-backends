@@ -5,7 +5,8 @@
 
 -- | A module providing a backend that sends commands to Z3 using its C API.
 module SMTLIB.Backends.Z3
-  ( Handle,
+  ( Config (..),
+    Handle,
     new,
     close,
     with,
@@ -14,6 +15,7 @@ module SMTLIB.Backends.Z3
 where
 
 import Control.Exception (bracket)
+import Control.Monad (forM_)
 import Data.ByteString.Builder.Extra
   ( defaultChunkSize,
     smallChunkSize,
@@ -22,6 +24,7 @@ import Data.ByteString.Builder.Extra
   )
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
+import Data.Default
 import qualified Data.Map as M
 import Foreign.ForeignPtr (ForeignPtr, finalizeForeignPtr, newForeignPtr)
 import Foreign.Ptr (Ptr)
@@ -31,7 +34,9 @@ import qualified Language.C.Inline.Unsafe as CU
 import qualified Language.C.Types as C
 import SMTLIB.Backends (Backend (..))
 
-data LogicalContext
+data Z3Context
+
+data Z3Config
 
 C.context
   ( C.baseCtx
@@ -39,24 +44,43 @@ C.context
       <> C.bsCtx
       <> mempty
         { C.ctxTypesTable =
-            M.singleton (C.TypeName "Z3_context") [t|Ptr LogicalContext|]
+            M.singleton (C.TypeName "Z3_context") [t|Ptr Z3Context|]
+              <> M.singleton (C.TypeName "Z3_config") [t|Ptr Z3Config|]
         }
   )
 C.include "z3.h"
 
+data Config = Config
+  { -- | A list of options to set during the solver's initialization.
+    -- Each pair is of the form @(paramId, paramValue)@, e.g.
+    -- @(":produce-models", "true")@.
+    parameters :: [(BS.ByteString, BS.ByteString)]
+  }
+
+-- | By default, don't set any options during initialization.
+instance Default Config where
+  def = Config []
+
 data Handle = Handle
   { -- | A black-box representing the internal state of the solver.
-    context :: ForeignPtr LogicalContext
+    context :: ForeignPtr Z3Context
   }
 
 -- | Create a new solver instance.
-new :: IO Handle
-new = do
+new :: Config -> IO Handle
+new config = do
   let ctxFinalizer =
         [C.funPtr| void free_context(Z3_context ctx) {
                  Z3_del_context(ctx);
                  } |]
-
+  -- we don't set a finalizer for this object as we manually delete it during the
+  -- context's creation
+  cfg <- [CU.exp| Z3_config { Z3_mk_config() } |]
+  forM_ (parameters config) $ \(paramId, paramValue) ->
+    [CU.exp| void { Z3_set_param_value($(Z3_config cfg),
+                                       $bs-ptr:paramId,
+                                       $bs-ptr:paramValue)
+           } |]
   {-
   We set the error handler to ignore errors. That way if an error happens it doesn't
   cause the whole program to crash, and the error message is simply transmitted to
@@ -65,9 +89,8 @@ new = do
   ctx <-
     newForeignPtr ctxFinalizer
       =<< [CU.block| Z3_context {
-                 Z3_config cfg = Z3_mk_config();
-                 Z3_context ctx = Z3_mk_context(cfg);
-                 Z3_del_config(cfg);
+                 Z3_context ctx = Z3_mk_context($(Z3_config cfg));
+                 Z3_del_config($(Z3_config cfg));
 
                  void ignore_error(Z3_context c, Z3_error_code e) {}
                  Z3_set_error_handler(ctx, ignore_error);
@@ -81,8 +104,8 @@ close :: Handle -> IO ()
 close = finalizeForeignPtr . context
 
 -- | Create a Z3 instance, use it to run a computation and release its resources.
-with :: (Handle -> IO a) -> IO a
-with = bracket new close
+with :: Config -> (Handle -> IO a) -> IO a
+with config = bracket (new config) close
 
 -- | Create a solver backend out of a Z3 instance.
 toBackend :: Handle -> Backend

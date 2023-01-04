@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import qualified Data.ByteString.Lazy.Char8 as LBS
+import Data.Default (def)
 import Examples (examples)
 import SMTLIB.Backends
 import SMTLIB.Backends.Tests
@@ -17,7 +18,7 @@ main = do
         testBackend "Error handling" failingSources z3
       ]
   where
-    z3 todo = Z3.with $ todo . Z3.toBackend
+    z3 todo = Z3.with def $ todo . Z3.toBackend
     validSources = filter (\source -> name source `notElem` ["assertions", "unsat cores"]) sources
     failingSources =
       [ Source "invalid command" $ \solver -> do
