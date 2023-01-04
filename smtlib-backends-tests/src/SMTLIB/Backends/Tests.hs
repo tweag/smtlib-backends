@@ -8,7 +8,7 @@ module SMTLIB.Backends.Tests
   )
 where
 
-import SMTLIB.Backends (Backend, command, initSolver)
+import SMTLIB.Backends (Backend, QueuingFlag (..), command, initSolver)
 import qualified SMTLIB.Backends.Tests.Sources as Src
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -25,19 +25,19 @@ testBackend ::
   TestTree
 testBackend name sources with =
   testGroup name $ do
-    lazyMode <- [False, True]
+    queuing <- [NoQueuing, Queuing]
     return
       $ testGroup
-        ( if lazyMode
-            then "lazy"
-            else "eager"
+        ( case queuing of
+            Queuing -> "queuing"
+            NoQueuing -> "no queuing"
         )
       $ do
         source <- sources
         return $
           testCase (Src.name source) $
             with $ \backend -> do
-              solver <- initSolver backend lazyMode
+              solver <- initSolver queuing backend
               Src.run source solver
               -- ensure the sources consisting only of queued commands also run
               _ <- command solver "(get-info :name)"

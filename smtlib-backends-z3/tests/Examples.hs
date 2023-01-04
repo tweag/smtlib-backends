@@ -4,7 +4,7 @@ module Examples (examples) where
 
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Default (def)
-import SMTLIB.Backends (command, command_, initSolver)
+import SMTLIB.Backends (QueuingFlag (..), command, command_, initSolver)
 import qualified SMTLIB.Backends.Z3 as Z3
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -28,7 +28,7 @@ basicUse =
     let backend = Z3.toBackend handle
     -- then, we create a solver out of the backend
     -- we enable queuing (it's faster !)
-    solver <- initSolver backend True
+    solver <- initSolver Queuing backend
     -- we send a basic command to the solver and ignore the response
     -- we can write the command as a simple string because we have enabled the
     -- OverloadedStrings pragma
@@ -47,7 +47,7 @@ settingOptions =
   $
     \handle -> do
       -- we don't enable queuing so that commands are checked for correctness
-      solver <- initSolver (Z3.toBackend handle) False
+      solver <- initSolver NoQueuing (Z3.toBackend handle)
       -- this is for example the case of the @:produce-assertions@ parameter, and not
       -- the case of the @:print-success@ one
       command_ solver "(set-option :print-success true)"

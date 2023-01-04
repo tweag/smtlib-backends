@@ -1,5 +1,5 @@
 name:               smtlib-backends
-version:            0.2
+version:            0.3
 synopsis:
   Low-level functions for SMT-LIB-based interaction with SMT solvers. 
 
