@@ -15,6 +15,7 @@ module SMTLIB.Backends.Z3
 where
 
 import Control.Exception (bracket)
+import Control.Monad (forM_)
 import Data.ByteString.Builder.Extra
   ( defaultChunkSize,
     smallChunkSize,
