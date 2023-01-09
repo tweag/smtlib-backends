@@ -4,7 +4,7 @@ module Examples (examples) where
 
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Default (def)
-import SMTLIB.Backends (QueuingFlag (..), command, command_, initSolver)
+import SMTLIB.Backends (QueuingFlag (..), command, initSolver)
 import qualified SMTLIB.Backends.Process as Process
 import System.Exit (ExitCode (ExitSuccess))
 import System.IO (BufferMode (LineBuffering), hSetBuffering)
@@ -74,12 +74,11 @@ manualExit :: IO ()
 manualExit = do
   -- launch a new process with 'Process.new'
   handle <- Process.new def
-  let backend = Process.toBackend handle
-  -- here we disable queuing so that we can use 'command_' to ensure the exit
-  -- command will be received successfully
-  solver <- initSolver NoQueuing backend
-  command_ solver "(exit)"
-  -- 'Process.wait' takes care of cleaning resources and waits for the process to
-  -- exit
+  -- to stop the process, we first send an "(exit)" command and then use
+  -- 'Process.wait' which takes care of cleaning resources and waits for the
+  -- process to actually exit
+  -- when an exit code isn't needed and the process doesn't have to stop
+  -- gracefully, another simpler option is to just use 'Process.close'
+  Process.exit handle
   exitCode <- Process.wait handle
   assertBool "the solver process didn't exit properly" $ exitCode == ExitSuccess

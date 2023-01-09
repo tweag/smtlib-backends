@@ -9,6 +9,7 @@ module SMTLIB.Backends.Process
   ( Config (..),
     Handle (..),
     new,
+    exit,
     wait,
     close,
     with,
@@ -107,6 +108,18 @@ new config = do
           )
     reportError' = (reportError config) . LBS.fromStrict
 
+-- | Send a command to the process without reading its response.
+write :: Handle -> Builder -> IO ()
+write handle cmd = do
+  hPutBuilder (getStdin $ process handle) $ cmd <> "\n"
+  IO.hFlush $ getStdin $ process handle
+
+-- | Send the @(exit)@ command to the process.
+-- Note that using @'write' ('toBackend' handle) "(exit)"@ instead could hang
+-- the process as it would wait for a response.
+exit :: Handle -> IO ()
+exit = flip write "(exit)"
+
 -- | Wait for the process to exit and cleanup its resources.
 wait :: Handle -> IO ExitCode
 wait handle = do
@@ -141,8 +154,7 @@ pattern c :< rest <- (BS.uncons -> Just (c, rest))
 toBackend :: Handle -> Backend
 toBackend handle =
   Backend $ \cmd -> do
-    hPutBuilder (getStdin $ process handle) $ cmd <> "\n"
-    IO.hFlush $ getStdin $ process handle
+    write handle cmd
     toLazyByteString <$> continueNextLine (scanParen 0) mempty
   where
     -- scanParen read lines from the handle's output channel until it has detected
