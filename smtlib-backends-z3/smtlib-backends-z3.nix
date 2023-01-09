@@ -5,7 +5,7 @@
 mkDerivation {
   pname = "smtlib-backends-z3";
   version = "0.3";
-  src = ./smtlib-backends-z3;
+  src = ./.;
   libraryHaskellDepends = [
     base bytestring containers data-default inline-c smtlib-backends
   ];

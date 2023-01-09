@@ -5,7 +5,7 @@
 mkDerivation {
   pname = "smtlib-backends-process";
   version = "0.3";
-  src = ./smtlib-backends-process;
+  src = ./.;
   libraryHaskellDepends = [
     async base bytestring data-default smtlib-backends typed-process
   ];

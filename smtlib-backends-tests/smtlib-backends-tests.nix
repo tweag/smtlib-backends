@@ -2,7 +2,7 @@
 mkDerivation {
   pname = "smtlib-backends-tests";
   version = "0.3";
-  src = ./smtlib-backends-tests;
+  src = ./.;
   libraryHaskellDepends = [ base smtlib-backends tasty tasty-hunit ];
   description = "Testing SMT-LIB backends";
   license = lib.licenses.mit;
