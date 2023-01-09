@@ -44,9 +44,8 @@
 
       ## Generate derivations for Haskell packages.
       ## We use `cabal2nix` from shell rather than the Nix-level
-      ## `callCabal2nix` to avoid using `allow-import-from-derivation`
-      ## (which allows this flake to e.g. support different operating
-      ## systems)
+      ## `callCabal2nix` to avoid using import from derivation.
+      ## For motives, see https://github.com/NixOS/nix/pull/5253
       apps.makeBackendsDerivations = {
         type = "app";
         program = "${makeBackendsDerivations}/bin/makeBackendsDerivations";
