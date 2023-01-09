@@ -19,7 +19,11 @@
           set -o xtrace
           function runCabal2nix () {
             path="$(dirname "$1")"; file="$(basename --suffix='.cabal' "$1")"
-            (cd "$path" || exit 1; cabal2nix . > "$file".nix)
+            { echo '## This file has been generated automatically.'
+              # shellcheck disable=SC2016
+              echo '## Run `nix run .#makeBackendsDerivation` to update it.'
+            } > "$path"/"$file".nix
+            (cd "$path" || exit 1; cabal2nix . >> "$file".nix)
           }
           export -f runCabal2nix
           ## We use `bash -c` because shell functions can't be passed to

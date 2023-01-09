@@ -1,3 +1,5 @@
+## This file has been generated automatically.
+## Run `nix run .#makeBackendsDerivation` to update it.
 { mkDerivation, base, lib, smtlib-backends, tasty, tasty-hunit }:
 mkDerivation {
   pname = "smtlib-backends-tests";

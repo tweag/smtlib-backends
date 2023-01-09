@@ -1,3 +1,5 @@
+## This file has been generated automatically.
+## Run `nix run .#makeBackendsDerivation` to update it.
 { mkDerivation, base, bytestring, lib }:
 mkDerivation {
   pname = "smtlib-backends";

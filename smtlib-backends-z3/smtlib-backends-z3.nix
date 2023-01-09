@@ -1,3 +1,5 @@
+## This file has been generated automatically.
+## Run `nix run .#makeBackendsDerivation` to update it.
 { mkDerivation, base, bytestring, containers, data-default, gomp
 , inline-c, lib, smtlib-backends, smtlib-backends-tests, tasty
 , tasty-hunit, z3
