@@ -2,6 +2,7 @@
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ViewPatterns #-}
 
 -- | A module providing a backend that launches solvers as external processes.
@@ -9,9 +10,9 @@ module SMTLIB.Backends.Process
   ( Config (..),
     Handle (..),
     new,
-    exit,
-    wait,
+    write,
     close,
+    kill,
     with,
     toBackend,
   )
@@ -30,7 +31,7 @@ import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Default (Default, def)
 import SMTLIB.Backends (Backend (..))
-import System.Exit (ExitCode)
+import System.Exit (ExitCode (ExitFailure))
 import qualified System.IO as IO
 import System.Process.Typed
   ( Process,
@@ -114,29 +115,31 @@ write handle cmd = do
   hPutBuilder (getStdin $ process handle) $ cmd <> "\n"
   IO.hFlush $ getStdin $ process handle
 
--- | Send the @(exit)@ command to the process.
--- Note that using @'write' ('toBackend' handle) "(exit)"@ instead could hang
--- the process as it would wait for a response.
-exit :: Handle -> IO ()
-exit = flip write "(exit)"
+-- | Cleanup the process' resources.
+cleanup :: Handle -> IO ()
+cleanup = cancel . errorReader
 
--- | Wait for the process to exit and cleanup its resources.
-wait :: Handle -> IO ExitCode
-wait handle = do
-  cancel $ errorReader handle
-  waitExitCode $ process handle
-
--- | Terminate the process, wait for it to actually exit and cleanup its resources.
--- Don't use this if you're manually stopping the solver process by sending an
--- @(exit)@ command. Use `wait` instead.
-close :: Handle -> IO ()
+-- | Cleanup the process' resources, send it an @(exit)@ command and wait for it
+-- to exit.
+close :: Handle -> IO ExitCode
 close handle = do
-  cancel $ errorReader handle
+  cleanup handle
+  let p = process handle
+  ( do
+      write handle "(exit)"
+      waitExitCode p
+    )
+    `X.catch` \(_ :: X.IOException) -> do
+      stopProcess p
+      return $ ExitFailure 1
+
+-- | Cleanup the process' resources and kill it immediately.
+kill :: Handle -> IO ()
+kill handle = do
+  cleanup handle
   stopProcess $ process handle
 
--- | Create a solver process, use it to make a computation and stop it.
--- Don't use this if you're manually stopping the solver process by sending an
--- @(exit)@ command. Use @\\config -> `System.IO.bracket` (`new` config) `wait`@ instead.
+-- | Create a solver process, use it to make a computation and close it.
 with ::
   -- | The solver process' configuration.
   Config ->
