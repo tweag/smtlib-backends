@@ -1,7 +1,7 @@
 # v0.3-alpha
 - make test-suite compatible with `smtlib-backends-0.3`
-- rename `Process.close` to `Process.kill`
-- rename `Process.wait` to `Process.close` and improve it
+- **(breaking change)** rename `Process.close` to `Process.kill`
+- **(breaking change)** rename `Process.wait` to `Process.close` and improve it
   - ensure the process gets killed even if an error is caught
   - send an `(exit)` command before waiting for the process to exit
   - this means `Process.with` now closes the process with this new version of
