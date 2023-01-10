@@ -1,7 +1,6 @@
+{-# LANGUAGE DisambiguateRecordFields #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE PatternSynonyms #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ViewPatterns #-}
 
@@ -107,7 +106,7 @@ new config = do
             IO.hClose h `X.catch` \ex ->
               reportError' $ BS.pack $ show (ex :: X.IOException)
           )
-    reportError' = (reportError config) . LBS.fromStrict
+    reportError' = reportError config . LBS.fromStrict
 
 -- | Send a command to the process without reading its response.
 write :: Handle -> Builder -> IO ()

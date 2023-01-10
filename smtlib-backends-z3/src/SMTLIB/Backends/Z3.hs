@@ -50,7 +50,7 @@ C.context
   )
 C.include "z3.h"
 
-data Config = Config
+newtype Config = Config
   { -- | A list of options to set during the solver's initialization.
     -- Each pair is of the form @(paramId, paramValue)@, e.g.
     -- @(":produce-models", "true")@.
@@ -61,7 +61,7 @@ data Config = Config
 instance Default Config where
   def = Config []
 
-data Handle = Handle
+newtype Handle = Handle
   { -- | A black-box representing the internal state of the solver.
     context :: ForeignPtr Z3Context
   }
