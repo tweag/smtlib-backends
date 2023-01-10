@@ -7,6 +7,7 @@
 module SMTLIB.Backends.Z3
   ( Config (..),
     Handle,
+    defaultConfig,
     new,
     close,
     with,
@@ -58,8 +59,11 @@ newtype Config = Config
   }
 
 -- | By default, don't set any options during initialization.
+defaultConfig :: Config
+defaultConfig = Config []
+
 instance Default Config where
-  def = Config []
+  def = defaultConfig
 
 newtype Handle = Handle
   { -- | A black-box representing the internal state of the solver.

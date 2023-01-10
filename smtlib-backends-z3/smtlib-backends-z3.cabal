@@ -60,7 +60,6 @@ test-suite test
   build-depends:
       base
     , bytestring
-    , data-default
     , smtlib-backends
     , smtlib-backends-tests
     , smtlib-backends-z3

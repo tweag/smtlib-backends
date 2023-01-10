@@ -3,7 +3,6 @@
 module Examples (examples) where
 
 import qualified Data.ByteString.Lazy.Char8 as LBS
-import Data.Default (def)
 import SMTLIB.Backends (QueuingFlag (..), command, initSolver)
 import qualified SMTLIB.Backends.Process as Process
 import System.IO (BufferMode (LineBuffering), hSetBuffering)
@@ -25,10 +24,8 @@ basicUse :: IO ()
 basicUse =
   -- 'Process.with' runs a computation using the 'Process' backend
   Process.with
-    -- the configuration type 'Process.Config' is an instance of the 'Default' class
-    -- we can thus use a default configuration for the backend with the 'def' method
-    -- this default configuration uses Z3 as an external process and disables logging
-    def
+    -- the default configuration uses Z3 as an external process and disables logging
+    Process.defaultConfig
     $ \handle -> do
       -- first, we make the process handle into an actual backend
       let backend = Process.toBackend handle
@@ -74,7 +71,7 @@ setOptions =
 manualExit :: IO ()
 manualExit = do
   -- launch a new process with 'Process.new'
-  handle <- Process.new def
+  handle <- Process.new Process.defaultConfig
   -- do some stuff
   doStuffWithHandle handle
   -- kill the process with 'Process.kill'
