@@ -12,7 +12,8 @@ import Test.Tasty.HUnit
 main :: IO ()
 main = do
   defaultMain $
-    testGroup "Tests" $
+    testGroup
+      "Tests"
       [ testBackend "Basic examples" validSources z3,
         testGroup "API usage examples" examples,
         testBackend "Error handling" failingSources z3

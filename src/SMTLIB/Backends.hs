@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections #-}
 
 module SMTLIB.Backends
   ( Backend (..),
@@ -19,7 +20,7 @@ import Prelude hiding (log)
 
 -- | The type of solver backends. SMTLib2 commands are sent to a backend which
 -- processes them and outputs the solver's response.
-data Backend = Backend
+newtype Backend = Backend
   { -- | Send a command to the backend.
     send :: Builder -> IO LBS.ByteString
   }
@@ -39,8 +40,7 @@ putQueue q cmd = atomicModifyIORef q $ \cmds ->
 -- | Empty the queue of commands to evaluate and return its content as a bytestring
 -- builder.
 flushQueue :: Queue -> IO Builder
-flushQueue q = atomicModifyIORef q $ \cmds ->
-  (mempty, cmds)
+flushQueue q = atomicModifyIORef q (mempty,)
 
 -- | A solver is essentially a wrapper around a solver backend. It also comes with
 -- a function for logging the solver's activity, and an optional queue of commands
@@ -107,7 +107,7 @@ command :: Solver -> Builder -> IO LBS.ByteString
 command solver cmd = do
   send (backend solver)
     =<< case queue solver of
-      Nothing -> return $ cmd
+      Nothing -> return cmd
       Just q -> (<> cmd) <$> flushQueue q
 
 -- | A command with no interesting result.

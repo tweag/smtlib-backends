@@ -1,7 +1,6 @@
+{-# LANGUAGE DisambiguateRecordFields #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE PatternSynonyms #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ViewPatterns #-}
 
 -- | A module providing a backend that launches solvers as external processes.
@@ -105,7 +104,7 @@ new config = do
             IO.hClose h `X.catch` \ex ->
               reportError' $ BS.pack $ show (ex :: X.IOException)
           )
-    reportError' = (reportError config) . LBS.fromStrict
+    reportError' = reportError config . LBS.fromStrict
 
 -- | Wait for the process to exit and cleanup its resources.
 wait :: Handle -> IO ExitCode
