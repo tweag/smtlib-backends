@@ -4,9 +4,8 @@ module Examples (examples) where
 
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Default (def)
-import SMTLIB.Backends (QueuingFlag (..), command, command_, initSolver)
+import SMTLIB.Backends (QueuingFlag (..), command, initSolver)
 import qualified SMTLIB.Backends.Process as Process
-import System.Exit (ExitCode (ExitSuccess))
 import System.IO (BufferMode (LineBuffering), hSetBuffering)
 import System.Process.Typed (getStdin)
 import Test.Tasty
@@ -40,6 +39,8 @@ basicUse =
       -- we can write the command as a simple string because we have enabled the
       -- OverloadedStrings pragma
       _ <- command solver "(get-info :name)"
+      -- note how there is no need to send an @(exit)@ command, this is already
+      -- handled by the 'Process.with' function
       return ()
 
 -- | An example of how to change the default settings of the 'Process' backend.
@@ -74,12 +75,17 @@ manualExit :: IO ()
 manualExit = do
   -- launch a new process with 'Process.new'
   handle <- Process.new def
-  let backend = Process.toBackend handle
-  -- here we disable queuing so that we can use 'command_' to ensure the exit
-  -- command will be received successfully
-  solver <- initSolver NoQueuing backend
-  command_ solver "(exit)"
-  -- 'Process.wait' takes care of cleaning resources and waits for the process to
-  -- exit
-  exitCode <- Process.wait handle
-  assertBool "the solver process didn't exit properly" $ exitCode == ExitSuccess
+  -- do some stuff
+  doStuffWithHandle handle
+  -- kill the process with 'Process.kill'
+  -- other options include using 'Process.close' to ensure the process exits
+  -- gracefully
+  --
+  -- if this isn't enough for you, it is always possible to send an @(exit)@
+  -- command using 'Process.write', access the solver process using
+  -- 'Process.process' and kill it manually
+  -- if this is what you go with, don't forget to also cancel the
+  -- 'Process.errorReader' asynchronous process!
+  Process.kill handle
+  where
+    doStuffWithHandle _ = return ()
