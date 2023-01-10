@@ -1,6 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import Data.Default (def)
 import Examples (examples)
 import qualified SMTLIB.Backends.Process as Process
 import SMTLIB.Backends.Tests (sources, testBackend)
@@ -13,10 +12,11 @@ main = do
     testGroup
       "Tests"
       [ testBackend "Basic examples" sources $ \todo ->
-          Process.with def $ todo . Process.toBackend,
+          Process.with Process.defaultConfig $ todo . Process.toBackend,
         testGroup "API usage examples" examples,
-        testCase "Piling up stopping procedures" $ Process.with def $ \handle -> do
-          Process.write handle "(exit)"
-          _ <- Process.close handle
-          Process.kill handle
+        testCase "Piling up stopping procedures" $
+          Process.with Process.defaultConfig $ \handle -> do
+            Process.write handle "(exit)"
+            _ <- Process.close handle
+            Process.kill handle
       ]

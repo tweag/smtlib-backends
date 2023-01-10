@@ -10,6 +10,7 @@
   solver's response
 - add a test checking that we can pile up procedures for exiting a process
   safely
+- add `Process.defaultConfig`, synonym for `def`
 
 # v0.2
 split `smtlib-backends`'s `Process` module into its own library

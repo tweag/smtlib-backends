@@ -8,6 +8,7 @@
 module SMTLIB.Backends.Process
   ( Config (..),
     Handle (..),
+    defaultConfig,
     new,
     write,
     close,
@@ -59,11 +60,14 @@ data Config = Config
     reportError :: LBS.ByteString -> IO ()
   }
 
--- | By default, use Z3 as an external process and ignore log messages.
+-- | By default, use Z3 as an external process and ignores log messages.
+defaultConfig :: Config
+-- if you change this, make sure to also update the comment two lines above
+-- as well as the one in @smtlib-backends-process/tests/Examples.hs@
+defaultConfig = Config "z3" ["-in"] (\_ -> return ())
+
 instance Default Config where
-  -- if you change this, make sure to also update the comment two lines above
-  -- as well as the one in @smtlib-backends-process/tests/Examples.hs@
-  def = Config "z3" ["-in"] $ const $ return ()
+  def = defaultConfig
 
 data Handle = Handle
   { -- | The process running the solver.

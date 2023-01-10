@@ -3,7 +3,6 @@
 module Examples (examples) where
 
 import qualified Data.ByteString.Lazy.Char8 as LBS
-import Data.Default (def)
 import SMTLIB.Backends (QueuingFlag (..), command, command_, initSolver)
 import qualified SMTLIB.Backends.Z3 as Z3
 import Test.Tasty
@@ -23,7 +22,7 @@ basicUse =
   -- it takes a configuration object as argument, whose use we describe in
   -- 'settingOptions'
   -- here we just use the default configuration, literally @'Z3.Config' []@
-  Z3.with def $ \handle -> do
+  Z3.with Z3.defaultConfig $ \handle -> do
     -- first, we make the z3 handle into an actual backend
     let backend = Z3.toBackend handle
     -- then, we create a solver out of the backend
@@ -42,7 +41,7 @@ settingOptions =
   -- set when the object representing the state of the solver is created
   -- hence the 'Z3.new' and 'Z3.with' functions allow for setting options at
   -- initialization time
-  Z3.with def
+  Z3.with Z3.defaultConfig
   -- (Z3.Config [(":produce-unsat-cores", "true")])
   $
     \handle -> do

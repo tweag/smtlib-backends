@@ -4,6 +4,7 @@
 object as argument, which one may use to set some solver options at initialization
 time
     - add corresponding examples in the test-suite
+- add `Z3.defaultConfig`, synonym for `def`
 
 # v0.2
 - make test-suite compatible with `smtlib-backends-0.2`
