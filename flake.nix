@@ -9,28 +9,6 @@
     flake-utils.lib.eachDefaultSystem (system: let
       pkgs = nixpkgs.legacyPackages.${system};
       hpkgs = pkgs.haskellPackages;
-      makeBackendsDerivations = pkgs.writeShellApplication {
-        name = "makeBackendsDerivations";
-        ## coreutils for xargs
-        runtimeInputs = with pkgs; [cabal2nix findutils coreutils];
-        text = ''
-          set -o errexit
-          set -o pipefail
-          set -o xtrace
-          function runCabal2nix () {
-            path="$(dirname "$1")"; file="$(basename --suffix='.cabal' "$1")"
-            { echo '## This file has been generated automatically.'
-              # shellcheck disable=SC2016
-              echo '## Run `nix run .#makeBackendsDerivation` to update it.'
-            } > "$path"/"$file".nix
-            (cd "$path" || exit 1; cabal2nix . >> "$file".nix)
-          }
-          export -f runCabal2nix
-          ## We use `bash -c` because shell functions can't be passed to
-          ## external processes (`xargs` in that case).
-          find . -name '*.cabal' | xargs -I{} bash -c 'runCabal2nix {}'
-        '';
-      };
       smtlib-backends = hpkgs.callPackage ./smtlib-backends.nix {};
       smtlib-backends-process = hpkgs.callPackage ./smtlib-backends-process/smtlib-backends-process.nix {
         inherit smtlib-backends smtlib-backends-tests;
@@ -44,9 +22,34 @@
 
       ## Generate derivations for Haskell packages.
       ## We use `cabal2nix` from shell rather than the Nix-level
-      ## `callCabal2nix` to avoid using import from derivation.
+      ## `callCabal2nix` to avoid using 'import from derivation'.
       ## For motives, see https://github.com/NixOS/nix/pull/5253
-      apps.makeBackendsDerivations = {
+      apps.makeBackendsDerivations = let
+        ## The script that generates a Nix derivation for each cabal
+        ## file present in the repository.
+        makeBackendsDerivations = pkgs.writeShellApplication {
+          name = "makeBackendsDerivations";
+          ## coreutils for xargs
+          runtimeInputs = with pkgs; [cabal2nix findutils coreutils];
+          text = ''
+            set -o errexit
+            set -o pipefail
+            set -o xtrace
+            function runCabal2nix () {
+              path="$(dirname "$1")"; file="$(basename --suffix='.cabal' "$1")"
+              { echo '## This file has been generated automatically.'
+                # shellcheck disable=SC2016
+                echo '## Run `nix run .#makeBackendsDerivation` to update it.'
+              } > "$path"/"$file".nix
+              (cd "$path" || exit 1; cabal2nix . >> "$file".nix)
+            }
+            export -f runCabal2nix
+            ## We use `bash -c` because shell functions can't be passed to
+            ## external processes (`xargs` in that case).
+            find . -name '*.cabal' | xargs -I{} bash -c 'runCabal2nix {}'
+          '';
+        };
+      in {
         type = "app";
         program = "${makeBackendsDerivations}/bin/makeBackendsDerivations";
       };
@@ -64,7 +67,7 @@
       devShells = let
         ## Needed by Z3 tests and haskell language server
         LD_LIBRARY_PATH = with pkgs; lib.strings.makeLibraryPath [z3];
-        packages = p: [
+        packages = _: [
           smtlib-backends
           smtlib-backends-tests
           smtlib-backends-process
