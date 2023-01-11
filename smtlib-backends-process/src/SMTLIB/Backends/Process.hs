@@ -164,8 +164,8 @@ toBackend handle =
     toLazyByteString
       <$> ( continueNextLine (scanParen 0) mempty
               `X.catch` \ex ->
-                fail $
-                  "Error while reading solver's response: "
+                error $
+                  "[smtlib-backends-process] Error while reading solver's response: "
                     ++ show (ex :: X.IOException)
           )
   where
