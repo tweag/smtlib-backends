@@ -161,7 +161,13 @@ toBackend :: Handle -> Backend
 toBackend handle =
   Backend $ \cmd -> do
     write handle cmd
-    toLazyByteString <$> continueNextLine (scanParen 0) mempty
+    toLazyByteString
+      <$> ( continueNextLine (scanParen 0) mempty
+              `X.catch` \ex ->
+                fail $
+                  "Error while reading solver's response: "
+                    ++ show (ex :: X.IOException)
+          )
   where
     -- scanParen read lines from the handle's output channel until it has detected
     -- a complete s-expression, i.e. a well-parenthesized word that may contain
