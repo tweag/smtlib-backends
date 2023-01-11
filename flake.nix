@@ -51,8 +51,8 @@
         program = "${makeBackendsDerivations}/bin/makeBackendsDerivations";
       };
 
-      checks.default = pkgs.stdenv.mkDerivation {
-        name = "smtlib-backends checks";
+      checks.formatting = pkgs.stdenv.mkDerivation {
+        name = "smtlib-backends format";
         src = ./.;
         nativeBuildInputs = [pkgs.ormolu];
         buildPhase = ''
