@@ -16,21 +16,6 @@ jobs:
         use-verbose-mode: 'yes'
         file-path: './README.md'
     
-  testing:
-    runs-on: ubuntu-22.04
-    name: Run test suites
-    steps:
-    - uses: actions/checkout@v3.1.0
-    - name: Install nix
-      uses: cachix/install-nix-action@v18
-      with:
-        extra_nix_config: |
-          access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-    - name: Processes backend test
-      run: nix develop .#lightweight --command cabal test smtlib-backends-process
-    - name: Z3 backend test
-      run: nix develop .#lightweight --command cabal test smtlib-backends-z3
-
   formatting:
     runs-on: ubuntu-22.04
     name: Check formatting
@@ -41,5 +26,17 @@ jobs:
       with:
         extra_nix_config: |
           access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-    - run: |
-        nix shell nixpkgs#ormolu --command ormolu --mode check $(find . -name '*.hs')
+    - run: nix flake check
+
+  testing:
+    runs-on: ubuntu-22.04
+    name: Run test suites
+    steps:
+    - uses: actions/checkout@v3.1.0
+    - name: Install nix
+      uses: cachix/install-nix-action@v18
+      with:
+        extra_nix_config: |
+          access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+    - name: Test backends
+      run: nix develop .#lightweight --command cabal test all

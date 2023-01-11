@@ -51,6 +51,16 @@
         program = "${makeBackendsDerivations}/bin/makeBackendsDerivations";
       };
 
+      checks.default = pkgs.stdenv.mkDerivation {
+        name = "smtlib-backends checks";
+        src = ./.;
+        nativeBuildInputs = [pkgs.ormolu];
+        buildPhase = ''
+          ormolu --mode check $(find . -name '*.hs') || exit 1
+        '';
+        installPhase = "mkdir $out";
+      };
+
       devShells = let
         ## Needed by Z3 tests and haskell language server
         LD_LIBRARY_PATH = with pkgs; lib.strings.makeLibraryPath [z3];
@@ -73,7 +83,7 @@
               haskell-language-server
               cabal-fmt
             ])
-            ++ [pkgs.z3];
+            ++ (with pkgs; [z3 ormolu]);
 
           inherit LD_LIBRARY_PATH;
         };
