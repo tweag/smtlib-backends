@@ -16,7 +16,7 @@ overhead. See the documentation of
 ## Usage
 
 Here is an example, using GHCi, of how to communicate with the solver
-Yices2 as an external process.
+[Yices2](https://yices.csl.sri.com/) as an external process.
 It requires the libraries `smtlib-backends` and `smtlib-backends-process`.
 ```haskell
 > import qualified SMTLIB.Backends.Process as P
