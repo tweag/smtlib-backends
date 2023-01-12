@@ -115,9 +115,13 @@ new config = decorateIOError "creating the solver process" $ do
 
 -- | Send a command to the process without reading its response.
 write :: Handle -> Builder -> IO ()
-write handle cmd = decorateIOError "writing a command on the process' input channel" $ do
-  hPutBuilder (getStdin $ process handle) $ cmd <> "\n"
-  IO.hFlush $ getStdin $ process handle
+write handle cmd =
+    decorateIOError msg $ do
+      hPutBuilder (getStdin $ process handle) $ cmd <> "\n"
+      IO.hFlush $ getStdin $ process handle
+  where
+    msg = "writing a command on the process' input channel "
+          ++ show (toLazyByteString cmd)
 
 -- | Cleanup the process' resources.
 cleanup :: Handle -> IO ()
