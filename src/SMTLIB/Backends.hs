@@ -21,6 +21,8 @@ import Prelude hiding (log)
 -- processes them and outputs the solver's response.
 newtype Backend = Backend
   { -- | Send a command to the backend.
+    -- While the implementation depends on the backend, this function is usually
+    -- *not* thread-safe.
     send :: Builder -> IO LBS.ByteString
   }
 
@@ -32,11 +34,13 @@ data QueuingFlag = Queuing | NoQueuing
 -- | Push a command on the solver's queue of commands to evaluate.
 -- The command must not produce any output when evaluated, unless it is the last
 -- command added before the queue is flushed.
+-- For a fixed queue, this function is *not* thread-safe.
 putQueue :: Queue -> Builder -> IO ()
 putQueue q cmd = modifyIORef q (<> cmd)
 
 -- | Empty the queue of commands to evaluate and return its content as a bytestring
 -- builder.
+-- For a fixed queue, this function is *not* thread-safe.
 flushQueue :: Queue -> IO Builder
 flushQueue q = do
   cmds <- readIORef q
@@ -104,6 +108,7 @@ initSolver queuing solverBackend = do
 -- | Have the solver evaluate a SMT-LIB command.
 -- This forces the queued commands to be evaluated as well, but their results are
 -- *not* checked for correctness.
+-- For a fixed backend, this function is *not* thread-safe.
 command :: Solver -> Builder -> IO LBS.ByteString
 command solver cmd = do
   send (backend solver)
@@ -116,6 +121,7 @@ command solver cmd = do
 -- In lazy mode, (unless the queue is flushed and evaluated
 -- right after) the command must not produce any output when evaluated, and
 -- its output is thus in particular not checked for correctness.
+-- For a fixed backend, this function is *not* thread-safe.
 command_ :: Solver -> Builder -> IO ()
 command_ solver cmd =
   case queue solver of
