@@ -5,6 +5,7 @@ see also the changelogs of `smtlib-backends-tests`, `smtlib-backends-process` an
 - **(breaking change)** add a datatype `Backend.QueuingFlag` to set the queuing mode
   - the `initSolver` function now takes this datatype as argument instead of a 
     boolean
+- **(breaking change)** make the queuing functions thread-unsafe but faster
 
 # v0.2
 - split the `Process` module into its own library
