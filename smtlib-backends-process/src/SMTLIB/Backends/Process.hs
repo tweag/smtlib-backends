@@ -30,6 +30,7 @@ import Data.ByteString.Builder
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Default (Default, def)
+import GHC.IO.Exception (IOException (ioe_description))
 import SMTLIB.Backends (Backend (..))
 import System.Exit (ExitCode (ExitFailure))
 import qualified System.IO as IO
@@ -82,7 +83,7 @@ new ::
   -- | The solver process' configuration.
   Config ->
   IO Handle
-new config = do
+new config = decorateIOError True "creating the solver process" $ do
   solverProcess <-
     startProcess $
       setStdin createLoggedPipe $
@@ -114,18 +115,18 @@ new config = do
 
 -- | Send a command to the process without reading its response.
 write :: Handle -> Builder -> IO ()
-write handle cmd = do
+write handle cmd = decorateIOError False "writing a command on the process' input channel" $ do
   hPutBuilder (getStdin $ process handle) $ cmd <> "\n"
   IO.hFlush $ getStdin $ process handle
 
 -- | Cleanup the process' resources.
 cleanup :: Handle -> IO ()
-cleanup = cancel . errorReader
+cleanup = decorateIOError False "cleaning the process' resources" . cancel . errorReader
 
 -- | Cleanup the process' resources, send it an @(exit)@ command and wait for it
 -- to exit.
 close :: Handle -> IO ExitCode
-close handle = do
+close handle = decorateIOError True "closing the solver process" $ do
   cleanup handle
   let p = process handle
   ( do
@@ -138,7 +139,7 @@ close handle = do
 
 -- | Cleanup the process' resources and kill it immediately.
 kill :: Handle -> IO ()
-kill handle = do
+kill handle = decorateIOError True "killing the solver process" $ do
   cleanup handle
   stopProcess $ process handle
 
@@ -159,7 +160,7 @@ pattern c :< rest <- (BS.uncons -> Just (c, rest))
 -- | Make the solver process into an SMT-LIB backend.
 toBackend :: Handle -> Backend
 toBackend handle =
-  Backend $ \cmd -> do
+  Backend $ \cmd -> decorateIOError True "sending a command to the solver" $ do
     write handle cmd
     toLazyByteString
       <$> ( continueNextLine (scanParen 0) mempty
@@ -208,5 +209,29 @@ toBackend handle =
 
     continueNextLine :: (Builder -> BS.ByteString -> IO a) -> Builder -> IO a
     continueNextLine f acc = do
-      next <- BS.hGetLine $ getStdout $ process handle
+      next <-
+        BS.hGetLine (getStdout $ process handle) `X.catch` \ex ->
+          X.throwIO
+            ( ex
+                { ioe_description =
+                    ioe_description ex
+                      ++ ": "
+                      ++ show (toLazyByteString acc)
+                }
+            )
       f (acc <> byteString next) next
+
+decorateIOError :: Bool -> String -> IO a -> IO a
+decorateIOError isTopLevel contextDescription todo =
+  todo
+    `X.catch` \ex ->
+      X.throwIO
+        ( ex
+            { ioe_description =
+                (if isTopLevel then "[smtlib-backends-process] " else "")
+                  ++ "while "
+                  ++ contextDescription
+                  ++ ": "
+                  ++ ioe_description ex
+            }
+        )
