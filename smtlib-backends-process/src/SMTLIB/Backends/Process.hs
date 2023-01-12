@@ -116,12 +116,11 @@ new config = decorateIOError "creating the solver process" $ do
 -- | Send a command to the process without reading its response.
 write :: Handle -> Builder -> IO ()
 write handle cmd =
-    decorateIOError msg $ do
-      hPutBuilder (getStdin $ process handle) $ cmd <> "\n"
-      IO.hFlush $ getStdin $ process handle
+  decorateIOError msg $ do
+    hPutBuilder (getStdin $ process handle) $ cmd <> "\n"
+    IO.hFlush $ getStdin $ process handle
   where
-    msg = "writing a command on the process' input channel "
-          ++ show (toLazyByteString cmd)
+    msg = "sending command " ++ show (toLazyByteString cmd) ++ " to the solver"
 
 -- | Cleanup the process' resources.
 cleanup :: Handle -> IO ()
@@ -165,8 +164,8 @@ pattern c :< rest <- (BS.uncons -> Just (c, rest))
 toBackend :: Handle -> Backend
 toBackend handle =
   Backend $ \cmd -> do
-    decorateIOError "sending a command to the solver" $
-      write handle cmd
+    -- exceptions are decorated inside the body of 'write'
+    write handle cmd
     decorateIOError "reading solver's response" $
       toLazyByteString
         <$> continueNextLine (scanParen 0) mempty
@@ -224,13 +223,13 @@ toBackend handle =
 
 decorateIOError :: String -> IO a -> IO a
 decorateIOError contextDescription =
-    X.handle $ \ex ->
-      X.throwIO
-        ( ex
-            { ioe_description =
-                "[smtlib-backends-process] while "
-                  ++ contextDescription
-                  ++ ": "
-                  ++ ioe_description ex
-            }
-        )
+  X.handle $ \ex ->
+    X.throwIO
+      ( ex
+          { ioe_description =
+              "[smtlib-backends-process] while "
+                ++ contextDescription
+                ++ ": "
+                ++ ioe_description ex
+          }
+      )
