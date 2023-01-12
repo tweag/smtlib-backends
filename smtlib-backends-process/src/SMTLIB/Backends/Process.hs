@@ -160,15 +160,12 @@ pattern c :< rest <- (BS.uncons -> Just (c, rest))
 -- | Make the solver process into an SMT-LIB backend.
 toBackend :: Handle -> Backend
 toBackend handle =
-  Backend $ \cmd -> decorateIOError "sending a command to the solver" $ do
-    write handle cmd
-    toLazyByteString
-      <$> ( continueNextLine (scanParen 0) mempty
-              `X.catch` \ex ->
-                error $
-                  "[smtlib-backends-process] Error while reading solver's response: "
-                    ++ show (ex :: X.IOException)
-          )
+  Backend $ \cmd -> do
+    decorateIOError "sending a command to the solver" $
+      write handle cmd
+    decorateIOError "reading solver's response" $
+      toLazyByteString
+        <$> continueNextLine (scanParen 0) mempty
   where
     -- scanParen read lines from the handle's output channel until it has detected
     -- a complete s-expression, i.e. a well-parenthesized word that may contain
