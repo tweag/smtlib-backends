@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections #-}
 
 module SMTLIB.Backends
   ( Backend (..),
@@ -14,7 +13,7 @@ where
 import Data.ByteString.Builder (Builder)
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Char (isSpace)
-import Data.IORef (IORef, atomicModifyIORef, newIORef)
+import Data.IORef (IORef, modifyIORef, newIORef, readIORef, writeIORef)
 import Data.List (intersperse)
 import Prelude hiding (log)
 
@@ -34,13 +33,15 @@ data QueuingFlag = Queuing | NoQueuing
 -- The command must not produce any output when evaluated, unless it is the last
 -- command added before the queue is flushed.
 putQueue :: Queue -> Builder -> IO ()
-putQueue q cmd = atomicModifyIORef q $ \cmds ->
-  (cmds <> cmd, ())
+putQueue q cmd = modifyIORef q (<> cmd)
 
 -- | Empty the queue of commands to evaluate and return its content as a bytestring
 -- builder.
 flushQueue :: Queue -> IO Builder
-flushQueue q = atomicModifyIORef q (mempty,)
+flushQueue q = do
+  cmds <- readIORef q
+  writeIORef q mempty
+  return cmds
 
 -- | A solver is essentially a wrapper around a solver backend. It also comes with
 -- a function for logging the solver's activity, and an optional queue of commands

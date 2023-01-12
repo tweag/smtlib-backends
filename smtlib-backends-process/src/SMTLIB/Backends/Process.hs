@@ -30,6 +30,7 @@ import Data.ByteString.Builder
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Default (Default, def)
+import GHC.IO.Exception (IOException (ioe_description))
 import SMTLIB.Backends (Backend (..))
 import System.Exit (ExitCode (ExitFailure))
 import qualified System.IO as IO
@@ -82,7 +83,7 @@ new ::
   -- | The solver process' configuration.
   Config ->
   IO Handle
-new config = do
+new config = decorateIOError "creating the solver process" $ do
   solverProcess <-
     startProcess $
       setStdin createLoggedPipe $
@@ -114,9 +115,12 @@ new config = do
 
 -- | Send a command to the process without reading its response.
 write :: Handle -> Builder -> IO ()
-write handle cmd = do
-  hPutBuilder (getStdin $ process handle) $ cmd <> "\n"
-  IO.hFlush $ getStdin $ process handle
+write handle cmd =
+  decorateIOError msg $ do
+    hPutBuilder (getStdin $ process handle) $ cmd <> "\n"
+    IO.hFlush $ getStdin $ process handle
+  where
+    msg = "sending command " ++ show (toLazyByteString cmd) ++ " to the solver"
 
 -- | Cleanup the process' resources.
 cleanup :: Handle -> IO ()
@@ -125,7 +129,7 @@ cleanup = cancel . errorReader
 -- | Cleanup the process' resources, send it an @(exit)@ command and wait for it
 -- to exit.
 close :: Handle -> IO ExitCode
-close handle = do
+close handle = decorateIOError "closing the solver process" $ do
   cleanup handle
   let p = process handle
   ( do
@@ -138,7 +142,7 @@ close handle = do
 
 -- | Cleanup the process' resources and kill it immediately.
 kill :: Handle -> IO ()
-kill handle = do
+kill handle = decorateIOError "killing the solver process" $ do
   cleanup handle
   stopProcess $ process handle
 
@@ -160,8 +164,11 @@ pattern c :< rest <- (BS.uncons -> Just (c, rest))
 toBackend :: Handle -> Backend
 toBackend handle =
   Backend $ \cmd -> do
+    -- exceptions are decorated inside the body of 'write'
     write handle cmd
-    toLazyByteString <$> continueNextLine (scanParen 0) mempty
+    decorateIOError "reading solver's response" $
+      toLazyByteString
+        <$> continueNextLine (scanParen 0) mempty
   where
     -- scanParen read lines from the handle's output channel until it has detected
     -- a complete s-expression, i.e. a well-parenthesized word that may contain
@@ -202,5 +209,27 @@ toBackend handle =
 
     continueNextLine :: (Builder -> BS.ByteString -> IO a) -> Builder -> IO a
     continueNextLine f acc = do
-      next <- BS.hGetLine $ getStdout $ process handle
+      next <-
+        BS.hGetLine (getStdout $ process handle) `X.catch` \ex ->
+          X.throwIO
+            ( ex
+                { ioe_description =
+                    ioe_description ex
+                      ++ ": "
+                      ++ show (toLazyByteString acc)
+                }
+            )
       f (acc <> byteString next) next
+
+decorateIOError :: String -> IO a -> IO a
+decorateIOError contextDescription =
+  X.handle $ \ex ->
+    X.throwIO
+      ( ex
+          { ioe_description =
+              "[smtlib-backends-process] while "
+                ++ contextDescription
+                ++ ": "
+                ++ ioe_description ex
+          }
+      )
