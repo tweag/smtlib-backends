@@ -25,7 +25,7 @@ It requires the libraries `smtlib-backends` and `smtlib-backends-process`.
 > let cfg = P.defaultConfig { P.exe = "yices-smt2", P.args = [] }
 > yicesProcess <- P.new cfg
 > yices <- SMT.initSolver SMT.NoQueuing (P.toBackend yicesProcess)
-> SMT.command yices "(get-info :name)" >>= print
+> SMT.command yices "(get-info :name)"
 "(:name \"Yices\")"
 ```
 
