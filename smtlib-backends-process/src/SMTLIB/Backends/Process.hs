@@ -121,7 +121,7 @@ write handle cmd = decorateIOError "writing a command on the process' input chan
 
 -- | Cleanup the process' resources.
 cleanup :: Handle -> IO ()
-cleanup = decorateIOError "cleaning the process' resources" . cancel . errorReader
+cleanup = cancel . errorReader
 
 -- | Cleanup the process' resources, send it an @(exit)@ command and wait for it
 -- to exit.
