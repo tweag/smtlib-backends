@@ -8,13 +8,14 @@ module SMTLIB.Backends
     initSolver,
     command,
     command_,
+    unsafeCommand_,
   )
 where
 
 import Data.ByteString.Builder (Builder)
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Char (isSpace)
-import Data.IORef (IORef, atomicModifyIORef, newIORef)
+import Data.IORef (IORef, atomicModifyIORef, modifyIORef, newIORef)
 import Data.List (intersperse)
 import Prelude hiding (log)
 
@@ -36,6 +37,10 @@ data QueuingFlag = Queuing | NoQueuing
 putQueue :: Queue -> Builder -> IO ()
 putQueue q cmd = atomicModifyIORef q $ \cmds ->
   (cmds <> cmd, ())
+
+-- | Thread-unsafe version of 'putQueue'.
+unsafePutQueue :: Queue -> Builder -> IO ()
+unsafePutQueue q cmd = modifyIORef q (<> cmd)
 
 -- | Empty the queue of commands to evaluate and return its content as a bytestring
 -- builder.
@@ -104,7 +109,7 @@ initSolver queuing solverBackend = do
 -- This forces the queued commands to be evaluated as well, but their results are
 -- *not* checked for correctness.
 command :: Solver -> Builder -> IO LBS.ByteString
-command solver cmd = do
+command solver cmd =
   send (backend solver)
     =<< case queue solver of
       Nothing -> return cmd
@@ -116,7 +121,16 @@ command solver cmd = do
 -- right after) the command must not produce any output when evaluated, and
 -- its output is thus in particular not checked for correctness.
 command_ :: Solver -> Builder -> IO ()
-command_ solver cmd =
+command_ = command_' putQueue
+
+-- | Thread-unsafe but faster version of 'command_'.
+-- In queuing mode, the commands are written on the queue in a thread-unsafe
+-- way. In non-queuing mode, the behavior is the same as for 'command_'.
+unsafeCommand_ :: Solver -> Builder -> IO ()
+unsafeCommand_ = command_' unsafePutQueue
+
+command_' :: (Queue -> Builder -> IO ()) -> Solver -> Builder -> IO ()
+command_' putQueueFn solver cmd =
   case queue solver of
     Nothing -> do
       res <- send (backend solver) cmd
@@ -129,7 +143,7 @@ command_ solver cmd =
                 "  Expected: success",
                 "  Got: " ++ show res
               ]
-    Just q -> putQueue q cmd
+    Just q -> putQueueFn q cmd
   where
     trim = LBS.dropWhile isSpace . LBS.reverse . LBS.dropWhile isSpace . LBS.reverse
 
