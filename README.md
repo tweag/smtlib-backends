@@ -15,18 +15,17 @@ overhead. See the documentation of
 
 ## Usage
 
-Within a Haskell project, add `smtlib-backends` and `smtlib-backends-process`
-to its dependencies, and that's it!
-The following lines show how to communicate with the solver Yices2 from GHCi
-(the binary `yices-smt2` must be in the `$PATH`):
+Here is an example, using GHCi, of how to communicate with the solver
+Yices2 as an external process.
+It requires the libraries `smtlib-backends` and `smtlib-backends-process`.
 ```haskell
-ghci> import qualified SMTLIB.Backends.Process as P
-ghci> import qualified SMTLIB.Backends as SMT
-ghci> :set -XOverloadedStrings
-ghci> let cfg = P.Config { P.exe = "yices-smt2", P.args = [], P.reportError = const $ return () }
-ghci> yicesProcess <- P.new cfg
-ghci> yices <- SMT.initSolver (P.toBackend yicesProcess) False
-ghci> SMT.command yices "(get-info :name)" >>= print
+> import qualified SMTLIB.Backends.Process as P
+> import qualified SMTLIB.Backends as SMT
+> :set -XOverloadedStrings
+> let cfg = P.defaultConfig { P.exe = "yices-smt2", P.args = [] }
+> yicesProcess <- P.new cfg
+> yices <- SMT.initSolver SMT.NoQueuing (P.toBackend yicesProcess)
+> SMT.command yices "(get-info :name)" >>= print
 "(:name \"Yices\")"
 ```
 
