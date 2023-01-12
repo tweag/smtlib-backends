@@ -15,7 +15,22 @@ overhead. See the documentation of
 
 ## Usage
 
-Examples of how to use the different backends are included in their respective test-suites:
+Here is an example, using GHCi, of how to communicate with the solver
+[Yices2](https://yices.csl.sri.com/) as an external process.
+It requires the libraries `smtlib-backends` and `smtlib-backends-process`.
+```haskell
+> import qualified SMTLIB.Backends.Process as P
+> import qualified SMTLIB.Backends as SMT
+> :set -XOverloadedStrings
+> let cfg = P.defaultConfig { P.exe = "yices-smt2", P.args = [] }
+> yicesProcess <- P.new cfg
+> yices <- SMT.initSolver SMT.NoQueuing (P.toBackend yicesProcess)
+> SMT.command yices "(get-info :name)"
+"(:name \"Yices\")"
+```
+
+More examples of how to use the different backends are included in their
+respective test-suites:
 - [examples for the `Process` backend](smtlib-backends-process/tests/Examples.hs)
 - [examples for the `Z3` backend](smtlib-backends-z3/tests/Examples.hs)
 
