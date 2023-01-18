@@ -47,15 +47,14 @@ flushQueue q = do
   writeIORef q mempty
   return cmds
 
--- | A solver is essentially a wrapper around a solver backend. It also comes with
--- a function for logging the solver's activity, and an optional queue of commands
--- to send to the backend.
+-- | A solver is essentially a wrapper around a solver backend. It also comes an
+-- optional queue of commands to send to the backend.
 --
 -- A solver can either be in eager (non-queuing) mode or lazy (queuing) mode. In
 -- eager mode, the queue of commands isn't used and the commands are sent to the
 -- backend immediately. In lazy mode, commands whose output are not strictly
 -- necessary for the rest of the computation (typically the ones whose output should
--- just be "success") and that are sent through 'command_' are not sent to the
+-- just be @success@) and that are sent through 'command_' are not sent to the
 -- backend immediately, but rather written on the solver's queue. When a command
 -- whose output is actually necessary needs to be sent, the queue is flushed and
 -- sent as a batch to the backend.
@@ -66,7 +65,7 @@ flushQueue q = do
 -- is flushed, i.e. when a command with interesting output is sent. You thus
 -- probably want to stick with eager mode when debugging. Moreover, when commands
 -- are sent by batches, only the last command in the batch may produce an output
--- for parsing to work properly. Hence the ":print-success" option is disabled in
+-- for parsing to work properly. Hence the @:print-success@ option is disabled in
 -- lazy mode, and this should not be overriden manually.
 data Solver = Solver
   { -- | The backend processing the commands.
