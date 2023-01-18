@@ -7,7 +7,7 @@ module SMTLIB.Backends
     initSolver,
     command,
     command_,
-    flush,
+    flushQueue,
   )
 where
 
@@ -44,14 +44,14 @@ data QueuingFlag = Queuing | NoQueuing
 -- The command must not produce any output when evaluated, unless it is the last
 -- command added before the queue is flushed.
 -- For a fixed queue, this function is *not* thread-safe.
-putQueue :: Queue -> Builder -> IO ()
-putQueue q cmd = modifyIORef q (<> cmd)
+put :: Queue -> Builder -> IO ()
+put q cmd = modifyIORef q (<> cmd)
 
 -- | Empty the queue of commands to evaluate and return its content as a bytestring
 -- builder.
 -- For a fixed queue, this function is *not* thread-safe.
-flushQueue :: Queue -> IO Builder
-flushQueue q = do
+flush :: Queue -> IO Builder
+flush q = do
   cmds <- readIORef q
   writeIORef q mempty
   return cmds
@@ -122,7 +122,7 @@ command solver cmd = do
   send (backend solver)
     =<< case queue solver of
       Nothing -> return cmd
-      Just q -> (<> cmd) <$> flushQueue q
+      Just q -> (<> cmd) <$> flush q
 
 -- | A command with no interesting result.
 -- In eager mode, the result is checked for correctness.
@@ -144,14 +144,14 @@ command_ solver cmd =
                 "  Expected: success",
                 "  Got: " ++ show res
               ]
-    Just q -> putQueue q cmd
+    Just q -> put q cmd
   where
     trim = LBS.dropWhile isSpace . LBS.reverse . LBS.dropWhile isSpace . LBS.reverse
 
 -- | Force the content of the queue to be sent to the solver.
 -- Only useful in queuing mode, does nothing in non-queuing mode.
-flush :: Solver -> IO ()
-flush solver = maybe (return ()) (send_ (backend solver) <=< flushQueue) $ queue solver
+flushQueue :: Solver -> IO ()
+flushQueue solver = maybe (return ()) (send_ (backend solver) <=< flush) $ queue solver
 
 setOption :: Solver -> Builder -> Builder -> IO ()
 setOption solver name value = command_ solver $ list ["set-option", ":" <> name, value]

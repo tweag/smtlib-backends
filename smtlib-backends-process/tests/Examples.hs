@@ -3,7 +3,7 @@
 module Examples (examples) where
 
 import qualified Data.ByteString.Lazy.Char8 as LBS
-import SMTLIB.Backends (QueuingFlag (..), command, initSolver)
+import SMTLIB.Backends (QueuingFlag (..), command, command_, flushQueue, initSolver)
 import qualified SMTLIB.Backends.Process as Process
 import System.IO (BufferMode (LineBuffering), hSetBuffering)
 import System.Process.Typed (getStdin)
@@ -16,7 +16,8 @@ examples :: [TestTree]
 examples =
   [ testCase "basic use" basicUse,
     testCase "setting options" setOptions,
-    testCase "exiting manually" manualExit
+    testCase "exiting manually" manualExit,
+    testCase "flushing the queue" flushing
   ]
 
 -- | Basic use of the 'Process' backend.
@@ -79,10 +80,26 @@ manualExit = do
   -- gracefully
   --
   -- if this isn't enough for you, it is always possible to send an @(exit)@
-  -- command using 'Process.write', access the solver process using
-  -- 'Process.process' and kill it manually
-  -- if this is what you go with, don't forget to also cancel the
-  -- 'Process.errorReader' asynchronous process!
+  -- command using 'command_' (see the 'flushing' example), access the solver
+  -- process using 'Process.process' and kill it manually if this is what you go
+  -- with, don't forget to also cancel the 'Process.errorReader' asynchronous
+  -- process!
   Process.kill handle
   where
     doStuffWithHandle _ = return ()
+
+-- | An example on how to force the content of the queue to be evaluated.
+flushing :: IO ()
+flushing = do
+  -- sometimes you want to use 'Queuing' mode but still force some commands not
+  -- producing any output to be evaluated
+  -- in that case, using 'command' would lead to your program hanging as it waits
+  -- for a response from the solver that never comes
+  -- the solution is to use the 'command_' function and then to flush the queue
+  Process.with Process.defaultConfig $ \handle -> do
+    -- this example only makes sense in queuing mode
+    solver <- initSolver Queuing $ Process.toBackend handle
+    -- add a command to the queue
+    command_ solver "(assert true)"
+    -- force the queue to be evaluated
+    flushQueue solver

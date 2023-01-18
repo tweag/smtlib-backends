@@ -3,7 +3,7 @@
 module Examples (examples) where
 
 import qualified Data.ByteString.Lazy.Char8 as LBS
-import SMTLIB.Backends (QueuingFlag (..), command, command_, initSolver)
+import SMTLIB.Backends (QueuingFlag (..), command, command_, flushQueue, initSolver)
 import qualified SMTLIB.Backends.Z3 as Z3
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -12,7 +12,8 @@ import Test.Tasty.HUnit
 examples :: [TestTree]
 examples =
   [ testCase "basic use" basicUse,
-    testCase "setting options" settingOptions
+    testCase "setting options" settingOptions,
+    testCase "flushing the queue" flushing
   ]
 
 -- | Basic use of the 'Z3' backend.
@@ -58,3 +59,19 @@ settingOptions =
       result <- command solver "(set-option :produce-unsat-cores true)"
       assertBool ("Expecting error message, got: " ++ LBS.unpack result) $ "(error" `LBS.isPrefixOf` result
       return ()
+
+-- | An example on how to force the content of the queue to be evaluated.
+flushing :: IO ()
+flushing = do
+  -- sometimes you want to use 'Queuing' mode but still force some commands not
+  -- producing any output to be evaluated
+  -- in that case, using 'command' would lead to your program hanging as it waits
+  -- for a response from the solver that never comes
+  -- the solution is to use the 'command_' function and then to flush the queue
+  Z3.with Z3.defaultConfig $ \handle -> do
+    -- this example only makes sense in queuing mode
+    solver <- initSolver Queuing $ Z3.toBackend handle
+    -- add a command to the queue
+    command_ solver "(assert true)"
+    -- force the queue to be evaluated
+    flushQueue solver
