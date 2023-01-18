@@ -10,7 +10,6 @@ module SMTLIB.Backends.Process
     Handle (..),
     defaultConfig,
     new,
-    write,
     close,
     kill,
     with,
