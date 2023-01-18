@@ -7,9 +7,11 @@ module SMTLIB.Backends
     initSolver,
     command,
     command_,
+    flush,
   )
 where
 
+import Control.Monad ((<=<))
 import Data.ByteString.Builder (Builder)
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Char (isSpace)
@@ -19,11 +21,18 @@ import Prelude hiding (log)
 
 -- | The type of solver backends. SMTLib2 commands are sent to a backend which
 -- processes them and outputs the solver's response.
-newtype Backend = Backend
+data Backend = Backend
   { -- | Send a command to the backend.
     -- While the implementation depends on the backend, this function is usually
     -- *not* thread-safe.
-    send :: Builder -> IO LBS.ByteString
+    send :: Builder -> IO LBS.ByteString,
+    -- | Send a command that doesn't produce any response to the backend.
+    -- The backend may implement this by not reading the output and leaving it
+    -- for a later read, or reading the output and discarding it immediately.
+    -- Hence this method should only be used when the command does not produce
+    -- any response to be outputted.
+    -- Again, this function may not be thread-safe.
+    send_ :: Builder -> IO ()
   }
 
 type Queue = IORef Builder
@@ -138,6 +147,11 @@ command_ solver cmd =
     Just q -> putQueue q cmd
   where
     trim = LBS.dropWhile isSpace . LBS.reverse . LBS.dropWhile isSpace . LBS.reverse
+
+-- | Force the content of the queue to be sent to the solver.
+-- Only useful in queuing mode, does nothing in non-queuing mode.
+flush :: Solver -> IO ()
+flush solver = maybe (return ()) (send_ (backend solver) <=< flushQueue) $ queue solver
 
 setOption :: Solver -> Builder -> Builder -> IO ()
 setOption solver name value = command_ solver $ list ["set-option", ":" <> name, value]
