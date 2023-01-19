@@ -7,9 +7,11 @@ module SMTLIB.Backends
     initSolver,
     command,
     command_,
+    flushQueue,
   )
 where
 
+import Control.Monad ((<=<))
 import Data.ByteString.Builder (Builder)
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Char (isSpace)
@@ -19,11 +21,18 @@ import Prelude hiding (log)
 
 -- | The type of solver backends. SMTLib2 commands are sent to a backend which
 -- processes them and outputs the solver's response.
-newtype Backend = Backend
+data Backend = Backend
   { -- | Send a command to the backend.
     -- While the implementation depends on the backend, this function is usually
     -- *not* thread-safe.
-    send :: Builder -> IO LBS.ByteString
+    send :: Builder -> IO LBS.ByteString,
+    -- | Send a command that doesn't produce any response to the backend.
+    -- The backend may implement this by not reading the output and leaving it
+    -- for a later read, or reading the output and discarding it immediately.
+    -- Hence this method should only be used when the command does not produce
+    -- any response to be outputted.
+    -- Again, this function may not be thread-safe.
+    send_ :: Builder -> IO ()
   }
 
 type Queue = IORef Builder
@@ -35,14 +44,14 @@ data QueuingFlag = Queuing | NoQueuing
 -- The command must not produce any output when evaluated, unless it is the last
 -- command added before the queue is flushed.
 -- For a fixed queue, this function is *not* thread-safe.
-putQueue :: Queue -> Builder -> IO ()
-putQueue q cmd = modifyIORef q (<> cmd)
+put :: Queue -> Builder -> IO ()
+put q cmd = modifyIORef q (<> cmd)
 
 -- | Empty the queue of commands to evaluate and return its content as a bytestring
 -- builder.
 -- For a fixed queue, this function is *not* thread-safe.
-flushQueue :: Queue -> IO Builder
-flushQueue q = do
+flush :: Queue -> IO Builder
+flush q = do
   cmds <- readIORef q
   writeIORef q mempty
   return cmds
@@ -113,7 +122,7 @@ command solver cmd = do
   send (backend solver)
     =<< case queue solver of
       Nothing -> return cmd
-      Just q -> (<> cmd) <$> flushQueue q
+      Just q -> (<> cmd) <$> flush q
 
 -- | A command with no interesting result.
 -- In eager mode, the result is checked for correctness.
@@ -135,9 +144,14 @@ command_ solver cmd =
                 "  Expected: success",
                 "  Got: " ++ show res
               ]
-    Just q -> putQueue q cmd
+    Just q -> put q cmd
   where
     trim = LBS.dropWhile isSpace . LBS.reverse . LBS.dropWhile isSpace . LBS.reverse
+
+-- | Force the content of the queue to be sent to the solver.
+-- Only useful in queuing mode, does nothing in non-queuing mode.
+flushQueue :: Solver -> IO ()
+flushQueue solver = maybe (return ()) (send_ (backend solver) <=< flush) $ queue solver
 
 setOption :: Solver -> Builder -> Builder -> IO ()
 setOption solver name value = command_ solver $ list ["set-option", ":" <> name, value]

@@ -10,7 +10,6 @@ module SMTLIB.Backends.Process
     Handle (..),
     defaultConfig,
     new,
-    write,
     close,
     kill,
     with,
@@ -162,14 +161,16 @@ pattern c :< rest <- (BS.uncons -> Just (c, rest))
 
 -- | Make the solver process into an SMT-LIB backend.
 toBackend :: Handle -> Backend
-toBackend handle =
-  Backend $ \cmd -> do
-    -- exceptions are decorated inside the body of 'write'
-    write handle cmd
-    decorateIOError "reading solver's response" $
-      toLazyByteString
-        <$> continueNextLine (scanParen 0) mempty
+toBackend handle = Backend backendSend backendSend_
   where
+    backendSend_ = write handle
+    backendSend cmd = do
+      -- exceptions are decorated inside the body of 'write'
+      write handle cmd
+      decorateIOError "reading solver's response" $
+        toLazyByteString
+          <$> continueNextLine (scanParen 0) mempty
+
     -- scanParen read lines from the handle's output channel until it has detected
     -- a complete s-expression, i.e. a well-parenthesized word that may contain
     -- strings, quoted symbols, and comments

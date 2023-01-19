@@ -16,7 +16,7 @@ module SMTLIB.Backends.Z3
 where
 
 import Control.Exception (bracket)
-import Control.Monad (forM_)
+import Control.Monad (forM_, void)
 import Data.ByteString.Builder.Extra
   ( defaultChunkSize,
     smallChunkSize,
@@ -113,18 +113,20 @@ with config = bracket (new config) close
 
 -- | Create a solver backend out of a Z3 instance.
 toBackend :: Handle -> Backend
-toBackend handle =
-  Backend $ \cmd -> do
-    let ctx = context handle
-    let cmd' =
-          LBS.toStrict $
-            toLazyByteStringWith
-              (untrimmedStrategy smallChunkSize defaultChunkSize)
-              "\NUL"
-              cmd
-    LBS.fromStrict
-      <$> ( BS.packCString
-              =<< [CU.exp| const char* {
+toBackend handle = Backend backendSend backendSend_
+  where
+    backendSend cmd = do
+      let ctx = context handle
+      let cmd' =
+            LBS.toStrict $
+              toLazyByteStringWith
+                (untrimmedStrategy smallChunkSize defaultChunkSize)
+                "\NUL"
+                cmd
+      LBS.fromStrict
+        <$> ( BS.packCString
+                =<< [CU.exp| const char* {
                Z3_eval_smtlib2_string($fptr-ptr:(Z3_context ctx), $bs-ptr:cmd')
                }|]
-          )
+            )
+    backendSend_ = void . backendSend
