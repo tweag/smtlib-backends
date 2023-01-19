@@ -78,12 +78,6 @@ manualExit = do
   -- kill the process with 'Process.kill'
   -- other options include using 'Process.close' to ensure the process exits
   -- gracefully
-  --
-  -- if this isn't enough for you, it is always possible to send an @(exit)@
-  -- command using 'command_' (see the 'flushing' example), access the solver
-  -- process using 'Process.process' and kill it manually if this is what you go
-  -- with, don't forget to also cancel the 'Process.errorReader' asynchronous
-  -- process!
   Process.kill handle
   where
     doStuffWithHandle _ = return ()
