@@ -59,23 +59,24 @@ flush q = do
 -- | A solver is essentially a wrapper around a solver backend. It also comes an
 -- optional queue of commands to send to the backend.
 --
--- A solver can either be in eager (non-queuing) mode or lazy (queuing) mode. In
--- eager mode, the queue of commands isn't used and the commands are sent to the
--- backend immediately. In lazy mode, commands whose output are not strictly
--- necessary for the rest of the computation (typically the ones whose output should
--- just be @success@) and that are sent through 'command_' are not sent to the
--- backend immediately, but rather written on the solver's queue. When a command
--- whose output is actually necessary needs to be sent, the queue is flushed and
--- sent as a batch to the backend.
+-- A solver can either be in 'Queuing' mode or 'NoQueuing' mode. In 'NoQueuing'
+-- mode, the queue of commands isn't used and the commands are sent to the
+-- backend immediately. In 'Queuing' mode, commands whose output are not
+-- strictly necessary for the rest of the computation (typically the ones whose
+-- output should just be @success@) and that are sent through 'command_' are not
+-- sent to the backend immediately, but rather written on the solver's queue.
+-- When a command whose output is actually necessary needs to be sent, the queue
+-- is flushed and sent as a batch to the backend.
 --
--- Lazy mode should be faster as there usually is a non-negligible constant
--- overhead in sending a command to the backend. But since the commands are sent by
--- batches, a command sent to the solver will only produce an error when the queue
--- is flushed, i.e. when a command with interesting output is sent. You thus
--- probably want to stick with eager mode when debugging. Moreover, when commands
--- are sent by batches, only the last command in the batch may produce an output
--- for parsing to work properly. Hence the @:print-success@ option is disabled in
--- lazy mode, and this should not be overriden manually.
+-- 'Queuing' mode should be faster as there usually is a non-negligible constant
+-- overhead in sending a command to the backend. But since the commands are sent
+-- by batches, a command sent to the solver will only produce an error when the
+-- queue is flushed, i.e. when a command with interesting output is sent. You
+-- thus probably want to stick with 'NoQueuing' mode when debugging. Moreover,
+-- when commands are sent by batches, only the last command in the batch may
+-- produce an output for parsing to work properly. Hence the @:print-success@
+-- option is disabled in 'Queuing' mode, and this should not be overriden
+-- manually.
 data Solver = Solver
   { -- | The backend processing the commands.
     backend :: Backend,
@@ -85,10 +86,11 @@ data Solver = Solver
 
 -- | Create a new solver and initialize it with some options so that it behaves
 -- correctly for our use.
--- In particular, the "print-success" option is disabled in lazy mode. This should
--- not be overriden manually.
+-- In particular, the "print-success" option is disabled in 'Queuing' mode. This
+-- should not be overriden manually.
 initSolver ::
-  -- | whether to enable lazy mode (see 'Solver' for the meaning of this flag)
+  -- | whether to enable 'Queuing' mode (see 'Solver' for the meaning of this
+  -- flag)
   QueuingFlag ->
   -- | the solver backend
   Backend ->
@@ -125,11 +127,11 @@ command solver cmd = do
       Just q -> (<> cmd) <$> flush q
 
 -- | A command with no interesting result.
--- In eager mode, the result is checked for correctness.
--- In lazy mode, (unless the queue is flushed and evaluated
--- right after) the command must not produce any output when evaluated, and
--- its output is thus in particular not checked for correctness.
--- For a fixed backend, this function is *not* thread-safe.
+-- In 'NoQueuing' mode, the result is checked for correctness. In 'Queuing'
+-- mode, (unless the queue is flushed and evaluated right after) the command
+-- must not produce any output when evaluated, and its output is thus in
+-- particular not checked for correctness. For a fixed backend, this function is
+-- *not* thread-safe.
 command_ :: Solver -> Builder -> IO ()
 command_ solver cmd =
   case queue solver of
