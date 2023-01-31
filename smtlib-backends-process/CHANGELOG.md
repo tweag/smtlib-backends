@@ -6,8 +6,10 @@
   - send an `(exit)` command before waiting for the process to exit
   - this means `Process.with` now closes the process with this new version of
     `Process.close`, hence gracefully
-- add a test checking that we can pile up procedures for exiting a process
-  safely
+- add tests for documenting edge cases of the backends
+  - check that we can pile up procedures for exiting a process
+  - what happens when sending an empty command
+  - what happens when sending a command not producing any output
 - add `Process.defaultConfig`, synonym for `def`
 - improve error messages inside `Process.toBackend`
 
