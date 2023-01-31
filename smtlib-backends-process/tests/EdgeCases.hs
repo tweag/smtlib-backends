@@ -2,12 +2,10 @@
 
 module EdgeCases (edgeCases) where
 
-import Control.Monad (when)
 import Data.ByteString.Builder (Builder)
+import Data.ByteString.Lazy.Char8 as LBS
 import SMTLIB.Backends as SMT
 import qualified SMTLIB.Backends.Process as Process
-import System.IO (hGetContents', hReady)
-import System.Process.Typed (getStdout)
 import Test.Tasty
 import Test.Tasty.HUnit
 
@@ -24,8 +22,6 @@ pileUpStops :: IO ()
 pileUpStops = Process.with Process.defaultConfig $ \handle -> do
   let backend = Process.toBackend handle
   SMT.send_ backend "(exit)"
-  _ <- Process.close handle
-  Process.kill handle
 
 -- | Upon processing an empty command, the backend will not respond.
 emptyCommand :: IO ()
@@ -37,11 +33,10 @@ commandNoResponse :: IO ()
 commandNoResponse = checkNoResponse "(set-option :print-success false)"
 
 checkNoResponse :: Builder -> IO ()
-checkNoResponse cmd = Process.with Process.defaultConfig $ \handle -> do
-  let backend = Process.toBackend handle
-      stdout = getStdout $ Process.process handle
-  SMT.send_ backend cmd
-  responseAvailable <- hReady stdout
-  when responseAvailable $ do
-    response <- hGetContents' stdout
-    assertFailure $ "expected no response, got: '" <> response <> "'"
+checkNoResponse cmd = do
+  response <- Process.with Process.defaultConfig $ \handle -> do
+    let backend = Process.toBackend handle
+    SMT.send_ backend cmd
+    -- (check-sat) will produce "sat"
+    SMT.send backend "(check-sat)"
+  assertEqual ("expected no response, got: '" <> LBS.unpack response <> "'") "sat" response
