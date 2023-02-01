@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import qualified Data.ByteString.Lazy.Char8 as LBS
+import EdgeCases (edgeCases)
 import Examples (examples)
 import SMTLIB.Backends
 import SMTLIB.Backends.Tests
@@ -15,7 +16,8 @@ main = do
       "Tests"
       [ testBackend "Basic examples" validSources z3,
         testGroup "API usage examples" examples,
-        testBackend "Error handling" failingSources z3
+        testBackend "Error handling" failingSources z3,
+        testGroup "Edge cases" edgeCases
       ]
   where
     z3 todo = Z3.with Z3.defaultConfig $ todo . Z3.toBackend

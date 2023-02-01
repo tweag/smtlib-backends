@@ -55,7 +55,10 @@ test-suite test
   type:             exitcode-stdio-1.0
   hs-source-dirs:   tests
   main-is:          Main.hs
-  other-modules:    Examples
+  other-modules:
+    EdgeCases
+    Examples
+
   ghc-options:      -threaded -Wall -Wunused-packages
   build-depends:
       base
