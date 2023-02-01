@@ -1,6 +1,6 @@
-{-# LANGUAGE DisambiguateRecordFields #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ViewPatterns #-}
 
@@ -11,7 +11,6 @@ module SMTLIB.Backends.Process
     defaultConfig,
     new,
     close,
-    kill,
     with,
     toBackend,
   )
@@ -31,22 +30,10 @@ import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Default (Default, def)
 import GHC.IO.Exception (IOException (ioe_description))
 import SMTLIB.Backends (Backend (..))
-import System.Exit (ExitCode (ExitFailure))
 import qualified System.IO as IO
-import System.Process.Typed
-  ( Process,
-    getStderr,
-    getStdin,
-    getStdout,
-    mkPipeStreamSpec,
-    setStderr,
-    setStdin,
-    setStdout,
-    startProcess,
-    stopProcess,
-    waitExitCode,
-  )
-import qualified System.Process.Typed as P (proc)
+-- we use process instead of typed-process because of a race condition in
+-- killing a process: https://github.com/fpco/typed-process/issues/38
+import System.Process as P
 
 data Config = Config
   { -- | The command to call to run the solver.
@@ -71,79 +58,62 @@ instance Default Config where
 
 data Handle = Handle
   { -- | The process running the solver.
-    process :: Process IO.Handle IO.Handle IO.Handle,
+    process :: P.ProcessHandle,
+    -- | The input channel of the process.
+    hIn :: IO.Handle,
+    -- | The output channel of the process.
+    hOut :: IO.Handle,
+    -- | The error channel of the process.
+    hErr :: IO.Handle,
     -- | A process reading the solver's error messages and logging them.
     errorReader :: Async ()
   }
 
 -- | Run a solver as a process.
--- Failures relative to terminating the process are logged and discarded.
 new ::
   -- | The solver process' configuration.
   Config ->
   IO Handle
-new config = decorateIOError "creating the solver process" $ do
-  solverProcess <-
-    startProcess $
-      setStdin createLoggedPipe $
-        setStdout createLoggedPipe $
-          setStderr createLoggedPipe $
-            P.proc (exe config) (args config)
+new Config {..} = decorateIOError "creating the solver process" $ do
+  (Just hIn, Just hOut, Just hErr, process) <-
+    P.createProcess
+      (P.proc exe args)
+        { std_in = P.CreatePipe,
+          std_out = P.CreatePipe,
+          std_err = P.CreatePipe
+        }
+  mapM_ setupHandle [hIn, hOut, hErr]
   -- log error messages created by the backend
-  solverErrorReader <-
+  errorReader <-
     async $
       forever
         ( do
-            errs <- BS.hGetLine $ getStderr solverProcess
+            errs <- BS.hGetLine hErr
             reportError' errs
         )
         `X.catch` \X.SomeException {} ->
           return ()
-  return $ Handle solverProcess solverErrorReader
+  return $ Handle process hIn hOut hErr errorReader
   where
-    createLoggedPipe =
-      mkPipeStreamSpec $ \_ h -> do
-        IO.hSetBinaryMode h True
-        IO.hSetBuffering h $ IO.BlockBuffering Nothing
-        return
-          ( h,
-            IO.hClose h `X.catch` \ex ->
-              reportError' $ BS.pack $ show (ex :: X.IOException)
-          )
-    reportError' = reportError config . LBS.fromStrict
+    setupHandle h = do
+      IO.hSetBinaryMode h True
+      IO.hSetBuffering h $ IO.BlockBuffering Nothing
+    reportError' = reportError . LBS.fromStrict
 
 -- | Send a command to the process without reading its response.
 write :: Handle -> Builder -> IO ()
-write handle cmd =
+write Handle {..} cmd =
   decorateIOError msg $ do
-    hPutBuilder (getStdin $ process handle) $ cmd <> "\n"
-    IO.hFlush $ getStdin $ process handle
+    hPutBuilder hIn $ cmd <> "\n"
+    IO.hFlush hIn
   where
     msg = "sending command " ++ show (toLazyByteString cmd) ++ " to the solver"
 
--- | Cleanup the process' resources.
-cleanup :: Handle -> IO ()
-cleanup = cancel . errorReader
-
--- | Cleanup the process' resources, send it an @(exit)@ command and wait for it
--- to exit.
-close :: Handle -> IO ExitCode
-close handle = decorateIOError "closing the solver process" $ do
-  cleanup handle
-  let p = process handle
-  ( do
-      write handle "(exit)"
-      waitExitCode p
-    )
-    `X.catch` \(_ :: X.IOException) -> do
-      stopProcess p
-      return $ ExitFailure 1
-
--- | Cleanup the process' resources and kill it immediately.
-kill :: Handle -> IO ()
-kill handle = decorateIOError "killing the solver process" $ do
-  cleanup handle
-  stopProcess $ process handle
+-- | Cleanup the process' resources, terminate it and wait for it to actually exit.
+close :: Handle -> IO ()
+close Handle {..} = decorateIOError "closing the solver process" $ do
+  cancel errorReader
+  P.cleanupProcess (Just hIn, Just hOut, Just hErr, process)
 
 -- | Create a solver process, use it to make a computation and close it.
 with ::
@@ -211,7 +181,7 @@ toBackend handle = Backend backendSend backendSend_
     continueNextLine :: (Builder -> BS.ByteString -> IO a) -> Builder -> IO a
     continueNextLine f acc = do
       next <-
-        BS.hGetLine (getStdout $ process handle) `X.catch` \ex ->
+        BS.hGetLine (hOut handle) `X.catch` \ex ->
           X.throwIO
             ( ex
                 { ioe_description =
