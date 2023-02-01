@@ -34,9 +34,10 @@ commandNoResponse = checkNoResponse "(set-option :print-success false)"
 
 checkNoResponse :: Builder -> IO ()
 checkNoResponse cmd = do
-  response <- Process.with Process.defaultConfig $ \handle -> do
+  Just response <- Process.with Process.defaultConfig $ \handle -> do
     let backend = Process.toBackend handle
+    -- using 'SMT.send' instead would hang the program
     SMT.send_ backend cmd
     -- (check-sat) will produce "sat"
-    SMT.send backend "(check-sat)"
-  assertEqual ("expected no response, got: '" <> LBS.unpack response <> "'") "sat" response
+    LBS.stripSuffix "sat" <$> SMT.send backend "(check-sat)"
+  assertBool ("expected no response, got: '" <> LBS.unpack response <> "'") $ LBS.null response
