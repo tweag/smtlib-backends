@@ -40,4 +40,4 @@ checkNoResponse cmd = do
     SMT.send_ backend cmd
     -- (check-sat) will produce "sat"
     LBS.stripSuffix "sat" <$> SMT.send backend "(check-sat)"
-  assertBool ("expected no response, got: '" <> LBS.unpack response <> "'") $ LBS.null response
+  assertEqual "expected no response" "" response

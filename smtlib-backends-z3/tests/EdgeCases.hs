@@ -28,4 +28,4 @@ checkEmptyResponse :: Builder -> IO ()
 checkEmptyResponse cmd = Z3.with Z3.defaultConfig $ \handle -> do
   let backend = Z3.toBackend handle
   response <- SMT.send backend cmd
-  assertBool ("expected empty response, got: '" <> LBS.unpack response <> "'") $ LBS.null response
+  assertEqual "expected no response" "" response
