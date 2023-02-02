@@ -1,12 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Examples (examples) where
 
+import Control.Concurrent.Async (cancel)
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import SMTLIB.Backends (QueuingFlag (..), command, command_, flushQueue, initSolver)
 import qualified SMTLIB.Backends.Process as Process
-import System.IO (BufferMode (LineBuffering), hSetBuffering)
-import System.Process.Typed (getStdin)
+import System.IO (BufferMode (LineBuffering), hClose, hSetBuffering)
+import System.Process (waitForProcess)
 import Test.Tasty
 import Test.Tasty.HUnit
 
@@ -16,7 +18,7 @@ examples :: [TestTree]
 examples =
   [ testCase "basic use" basicUse,
     testCase "setting options" setOptions,
-    testCase "exiting manually" manualExit,
+    testCase "managing the underlying process" underlyingProcess,
     testCase "flushing the queue" flushing
   ]
 
@@ -52,35 +54,35 @@ setOptions =
             Process.reportError = LBS.putStr . (`LBS.snoc` '\n')
           }
    in Process.with myConfig $ \handle -> do
-        -- since the 'Process' module exposes its 'Handle' datatype entirely, we can also
-        -- change the settings of the underlying process
-        -- you probably won't need to do this as the library already choose these
-        -- settings to ensure the communication with the solvers is as fast as
-        -- possible
-        let p = Process.process handle
-            stdin = getStdin p
-        -- for instance here we change the buffering mode of the process' input channel
-        hSetBuffering stdin LineBuffering
-        -- we can then use the backend as before
-        let backend = Process.toBackend handle
-        solver <- initSolver Queuing backend
+        solver <- initSolver Queuing $ Process.toBackend handle
         _ <- command solver "(get-info :name)"
         return ()
 
--- | An example of how to close the 'Process' backend's underlying process manually,
--- instead of relying on 'Process.with' or 'Process.close'.
-manualExit :: IO ()
-manualExit = do
-  -- launch a new process with 'Process.new'
-  handle <- Process.new Process.defaultConfig
-  -- do some stuff
-  doStuffWithHandle handle
-  -- kill the process with 'Process.kill'
-  -- other options include using 'Process.close' to ensure the process exits
-  -- gracefully
-  Process.kill handle
-  where
-    doStuffWithHandle _ = return ()
+-- | An example of how to get the backend's underlying process and manage it
+-- manually.
+underlyingProcess :: IO ()
+underlyingProcess = do
+  -- since the 'Process' module exposes its 'Handle' datatype entirely, we have
+  -- direct access to the process and its I/O channels
+  -- you'll probably never need this as the library already provides enough
+  -- bindings for common needs and chooses the process' settings to ensure the
+  -- communication with solvers is as fast as possible
+  --
+  -- we'll close the process manually so we just launch it with 'Process.new'
+  -- instead of using `Process.with`
+  Process.Handle {..} <- Process.new Process.defaultConfig
+  -- we can now change the settings of the underlying process
+  -- for instance here we change the buffering mode of the process' input channel
+  hSetBuffering hIn LineBuffering
+  -- the default way to close the process is to use 'Process.close', which sends
+  -- it a SIGTERM
+  -- if you don't like this, you can always send it an @(exit)@ command and wait
+  -- for it to end, but make sure you also release its other resources
+  LBS.hPutStrLn hIn "(exit)"
+  cancel errorReader
+  mapM_ hClose [hIn, hOut, hErr]
+  _ <- waitForProcess process
+  return ()
 
 -- | An example on how to force the content of the queue to be evaluated.
 flushing :: IO ()
