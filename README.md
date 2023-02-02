@@ -3,12 +3,12 @@
 This Haskell library provides different low-level ways of interacting with SMT
 solvers using [SMT-LIB](https://smtlib.cs.uiowa.edu/).
 
-We currently provide two different backends: a classic backend, available in the 
-`smtlib-backends-process` package, implemented by running solvers as external processes, 
+We currently provide two different backends: a classic backend, available in the
+`smtlib-backends-process` package, implemented by running solvers as external processes,
 and a faster backend, available in the `smtlib-backends-z3` package, implemented using Z3
 as a library.
 
-In addition, the API allows for queuing commands so that they are sent to the backend 
+In addition, the API allows for queuing commands so that they are sent to the backend
 only when a response is needed, as we have observed this to reduce the communication
 overhead. See the documentation of
 [SMTLIB.Backends.Solver](src/SMTLIB/Backends.hs) for the details.
@@ -64,7 +64,12 @@ different projects.
 
 ### Code formatting
 
-We format our code using [ormolu](https://github.com/tweag/ormolu) (more specifically the version from [NixOS/nixpkgs](https://github.com/NixOS/nixpkgs)'s master branch). The `.cabal` files are formatted using [`cabal-fmt`](https://github.com/phadej/cabal-fmt). It is thus recommended to add the following script as your `.git/hooks/pre-commit`:
+We format our code using [ormolu](https://github.com/tweag/ormolu)
+retrieved from [NixOS/nixpkgs](https://github.com/NixOS/nixpkgs)
+whose revision is defined in the [flake lock](./flake.lock).
+The `.cabal` files are formatted using
+[`cabal-fmt`](https://github.com/phadej/cabal-fmt). It is thus recommended to
+add the following script as your `.git/hooks/pre-commit`:
 ```bash
 #!/usr/bin/env bash
 set -e
