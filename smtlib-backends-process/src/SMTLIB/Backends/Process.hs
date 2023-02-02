@@ -31,8 +31,6 @@ import Data.Default (Default, def)
 import GHC.IO.Exception (IOException (ioe_description))
 import SMTLIB.Backends (Backend (..))
 import qualified System.IO as IO
--- we use process instead of typed-process because of a race condition in
--- killing a process: https://github.com/fpco/typed-process/issues/38
 import System.Process as P
 
 data Config = Config
