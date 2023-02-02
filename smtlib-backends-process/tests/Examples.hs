@@ -3,7 +3,6 @@
 
 module Examples (examples) where
 
-import Control.Concurrent.Async (cancel)
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import SMTLIB.Backends (QueuingFlag (..), command, command_, flushQueue, initSolver)
 import qualified SMTLIB.Backends.Process as Process
@@ -50,8 +49,7 @@ setOptions =
   let myConfig =
         Process.Config
           { Process.exe = "z3",
-            Process.args = ["-in", "solver.timeout=10000"],
-            Process.reportError = LBS.putStr . (`LBS.snoc` '\n')
+            Process.args = ["-in", "solver.timeout=10000"]
           }
    in Process.with myConfig $ \handle -> do
         solver <- initSolver Queuing $ Process.toBackend handle
@@ -79,7 +77,6 @@ underlyingProcess = do
   -- if you don't like this, you can always send it an @(exit)@ command and wait
   -- for it to end, but make sure you also release its other resources
   LBS.hPutStrLn hIn "(exit)"
-  cancel errorReader
   mapM_ hClose [hIn, hOut, hErr]
   _ <- waitForProcess process
   return ()

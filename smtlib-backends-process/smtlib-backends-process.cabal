@@ -31,8 +31,7 @@ library
   exposed-modules:  SMTLIB.Backends.Process
   other-extensions: Safe
   build-depends:
-      async            >=2.2.4   && <2.3
-    , base             >=4.14    && <4.18
+      base             >=4.14    && <4.18
     , bytestring       >=0.10.12 && <0.12
     , data-default     >=0.7.1   && <0.8
     , process          >=1.6     && <1.7
@@ -50,8 +49,7 @@ test-suite test
 
   ghc-options:      -threaded -Wall -Wunused-packages
   build-depends:
-      async
-    , base
+      base
     , bytestring
     , process
     , smtlib-backends

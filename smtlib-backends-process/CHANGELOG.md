@@ -11,6 +11,10 @@
   - remove `Process.wait`
   - there is now a single example in the test-suite showing how to 
     manage the underlying process and its I/O channels
+- **(breaking change)** removed logging capabilities, this is now on the user to
+  implement
+  - remove `Config`'s `reportError` field
+  - remove `Handle`'s `errorReader` field
 
 # v0.2
 split `smtlib-backends`'s `Process` module into its own library
