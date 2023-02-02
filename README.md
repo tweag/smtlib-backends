@@ -31,7 +31,8 @@ It requires the libraries `smtlib-backends` and `smtlib-backends-process`.
 
 More examples of how to use the different backends are included in their
 respective test-suites:
-- [examples for the `Process` backend](smtlib-backends-process/tests/Examples.hs)
+- [examples for the `Process`
+  backend](smtlib-backends-process/tests/Examples.hs)
 - [examples for the `Z3` backend](smtlib-backends-z3/tests/Examples.hs)
 
 ## Building and testing
@@ -39,26 +40,27 @@ respective test-suites:
 This repository provides a reproducible build environment through a [Nix
 flake](https://www.tweag.io/blog/2020-05-25-flakes/).
 
-Another option is to manually install Z3 to use the process backend, and the
-Z3 C library to use the Z3 backend. Then you can build and test the libraries
-using `cabal build` and `cabal test`.
+Another option is to manually install Z3 to use the process backend, and the Z3
+C library to use the Z3 backend. Then you can build and test the libraries using
+`cabal build` and `cabal test`.
 
 ## Implementing backends
 
 Currently, backends only need to provide a function to submit queries, as
 documented in [SMTLIB.Backends.Backend](src/SMTLIB/Backends.hs). See
-[SMTLIB.Backends.Process.toBackend](smtlib-backends-process/src/SMTLIB/Backends/Process.hs) or
-[SMTLIB.Backends.Z3.toBackend](smtlib-backends-z3/src/SMTLIB/Backends/Z3.hs) for examples.
+[SMTLIB.Backends.Process.toBackend](smtlib-backends-process/src/SMTLIB/Backends/Process.hs)
+or [SMTLIB.Backends.Z3.toBackend](smtlib-backends-z3/src/SMTLIB/Backends/Z3.hs)
+for examples.
 
 ## Motivation
 
-This library was created because there are a lot of Haskell projects using SMT solvers
-through SMT-LIB, but most of them only use solvers through external processes
-and implement the interaction with the solver themselves. But running solvers
-as external processes can be quite slow, hence this library aims to provide
-other, more efficient ways to do so. We believe having one well-optimized and
-safe library is more efficient than having the same code be spread out between
-different projects.
+This library was created because there are a lot of Haskell projects using SMT
+solvers through SMT-LIB, but most of them only use solvers through external
+processes and implement the interaction with the solver themselves. But running
+solvers as external processes can be quite slow, hence this library aims to
+provide other, more efficient ways to do so. We believe having one
+well-optimized and safe library is more efficient than having the same code be
+spread out between different projects.
 
 ## Contributing
 
