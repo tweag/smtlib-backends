@@ -9,11 +9,11 @@ mkDerivation {
   version = "0.3";
   src = ./.;
   libraryHaskellDepends = [
-    async base bytestring data-default smtlib-backends typed-process
+    async base bytestring data-default process smtlib-backends
   ];
   testHaskellDepends = [
-    base bytestring data-default smtlib-backends smtlib-backends-tests
-    tasty tasty-hunit typed-process
+    base bytestring data-default process smtlib-backends
+    smtlib-backends-tests tasty tasty-hunit
   ];
   description = "An SMT-LIB backend running solvers as external processes";
   license = lib.licenses.mit;
