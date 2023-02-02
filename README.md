@@ -1,7 +1,7 @@
 # SMT-LIB backends
 
 This Haskell library provides different low-level ways of interacting with SMT
-solvers using [SMT-LIB](https://smtlib.cs.uiowa.edu/).
+solvers using [SMT-LIB](http://smtlib.cs.uiowa.edu/).
 
 We currently provide two different backends: a classic backend, available in the
 `smtlib-backends-process` package, implemented by running solvers as external processes,
