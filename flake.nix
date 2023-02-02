@@ -46,7 +46,7 @@
             export -f runCabal2nix
             ## We use `bash -c` because shell functions can't be passed to
             ## external processes (`xargs` in that case).
-            find . -name '*.cabal' | xargs -I{} bash -c 'runCabal2nix {}'
+            find . -name '*.cabal' -print0 | xargs --null -I{} bash -c 'runCabal2nix {}'
           '';
         };
       in {

@@ -1,8 +1,7 @@
 ## This file has been generated automatically.
 ## Run `nix run .#makeBackendsDerivation` to update it.
-{ mkDerivation, async, base, bytestring, data-default, lib
+{ mkDerivation, async, base, bytestring, data-default, lib, process
 , smtlib-backends, smtlib-backends-tests, tasty, tasty-hunit
-, typed-process
 }:
 mkDerivation {
   pname = "smtlib-backends-process";
@@ -12,8 +11,8 @@ mkDerivation {
     async base bytestring data-default process smtlib-backends
   ];
   testHaskellDepends = [
-    base bytestring data-default process smtlib-backends
-    smtlib-backends-tests tasty tasty-hunit
+    async base bytestring process smtlib-backends smtlib-backends-tests
+    tasty tasty-hunit
   ];
   description = "An SMT-LIB backend running solvers as external processes";
   license = lib.licenses.mit;
