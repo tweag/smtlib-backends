@@ -1,6 +1,6 @@
 ## This file has been generated automatically.
 ## Run `nix run .#makeBackendsDerivation` to update it.
-{ mkDerivation, async, base, bytestring, data-default, lib, process
+{ mkDerivation, async, base, bytestring, lib, process
 , smtlib-backends, smtlib-backends-tests, tasty, tasty-hunit
 }:
 mkDerivation {
@@ -8,7 +8,7 @@ mkDerivation {
   version = "0.3";
   src = ./.;
   libraryHaskellDepends = [
-    async base bytestring data-default process smtlib-backends
+    async base bytestring process smtlib-backends
   ];
   testHaskellDepends = [
     async base bytestring process smtlib-backends smtlib-backends-tests

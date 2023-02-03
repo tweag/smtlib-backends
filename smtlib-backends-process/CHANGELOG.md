@@ -15,6 +15,7 @@
   implement
   - remove `Config`'s `reportError` field
   - remove `Handle`'s `errorReader` field
+- **(breaking change)** removed `Data.Default` instance of `Config`
 
 # v0.2
 split `smtlib-backends`'s `Process` module into its own library

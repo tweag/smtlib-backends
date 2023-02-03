@@ -8,6 +8,7 @@ time
 - add tests for documenting edge cases of the backends
   - what happens when sending an empty command
   - what happens when sending a command not producing any output
+- **(breaking change)** removed `Data.Default` instance of `Config`
 
 # v0.2
 - make test-suite compatible with `smtlib-backends-0.2`

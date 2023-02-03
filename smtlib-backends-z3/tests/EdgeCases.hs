@@ -3,7 +3,6 @@
 module EdgeCases (edgeCases) where
 
 import Data.ByteString.Builder (Builder)
-import Data.ByteString.Lazy.Char8 as LBS
 import SMTLIB.Backends as SMT
 import qualified SMTLIB.Backends.Z3 as Z3
 import Test.Tasty
