@@ -50,7 +50,7 @@ setOptions :: IO ()
 setOptions =
   -- here we use a custom-made configuration
   let myConfig =
-        Process.Config
+        Process.defaultConfig
           { Process.exe = "z3",
             Process.args = ["-in", "solver.timeout=10000"]
           }
@@ -73,8 +73,8 @@ underlyingProcess = do
   --
   -- we'll close the process manually so we just launch it with 'Process.new'
   -- instead of using `Process.with`
-  Process.Handle {..} <- Process.new Process.defaultConfig
-  -- the main use of accessing the internals of tbe 'Process.Handle' is to monitor
+  Process.Handle {hMaybeErr = Just hErr, ..} <- Process.new Process.defaultConfig
+  -- the main use of accessing the internals of the 'Process.Handle' is to monitor
   -- the process' error channel
   _ <- async $ forever (hGetLine hErr >>= putStrLn) `catch` \SomeException {} -> return ()
   -- we can also change the settings of the underlying process

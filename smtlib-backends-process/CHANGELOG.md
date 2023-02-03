@@ -10,7 +10,9 @@ this file.
   - check that we can pile up procedures for exiting a process
   - what happens when sending an empty command
   - what happens when sending a command not producing any output
-- add `Process.defaultConfig`, synonym for `def`
+- add `Process.defaultConfig`
+- add `std_err` field in `Config`: the user may now specifiy how to create the
+  handle for the error channel
 
 ### Changed
 - make the test-suite compatible with `smtlib-backends-0.3`

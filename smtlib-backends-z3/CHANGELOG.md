@@ -6,7 +6,7 @@ file.
 ## v0.3 _(2023-02-03)_
 
 ### Added
-- add `Z3.defaultConfig`, synonym for `def`
+- add `Z3.defaultConfig`
 - add tests for documenting edge cases of the backends
   - what happens when sending an empty command
   - what happens when sending a command not producing any output
@@ -19,6 +19,7 @@ file.
   at initialization time
   - add corresponding examples in the test-suite
 - dropped dependency on `inline-c`
+- removed `Data.Default` instance for `Config`
 
 ## v0.2 _(2022-12-16)_
 

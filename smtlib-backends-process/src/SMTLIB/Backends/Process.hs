@@ -13,6 +13,7 @@ module SMTLIB.Backends.Process
     close,
     with,
     toBackend,
+    P.StdStream (..),
   )
 where
 
@@ -27,20 +28,22 @@ import qualified Data.ByteString.Char8 as BS
 import GHC.IO.Exception (IOException (ioe_description))
 import SMTLIB.Backends (Backend (..))
 import qualified System.IO as IO
-import System.Process as P
+import qualified System.Process as P
 
 data Config = Config
   { -- | The command to call to run the solver.
     exe :: String,
     -- | Arguments to pass to the solver's command.
-    args :: [String]
+    args :: [String],
+    -- | How to handle std_err of the solver.
+    std_err :: P.StdStream
   }
 
 -- | By default, use Z3 as an external process and ignores log messages.
 defaultConfig :: Config
 -- if you change this, make sure to also update the comment two lines above
 -- as well as the one in @smtlib-backends-process/tests/Examples.hs@
-defaultConfig = Config "z3" ["-in"]
+defaultConfig = Config "z3" ["-in"] P.CreatePipe
 
 data Handle = Handle
   { -- | The process running the solver.
@@ -50,7 +53,7 @@ data Handle = Handle
     -- | The output channel of the process.
     hOut :: IO.Handle,
     -- | The error channel of the process.
-    hErr :: IO.Handle
+    hMaybeErr :: Maybe IO.Handle
   }
 
 -- | Run a solver as a process.
@@ -59,16 +62,16 @@ new ::
   Config ->
   IO Handle
 new Config {..} = decorateIOError "creating the solver process" $ do
-  (Just hIn, Just hOut, Just hErr, process) <-
+  (Just hIn, Just hOut, hMaybeErr, process) <-
     P.createProcess
       (P.proc exe args)
-        { std_in = P.CreatePipe,
-          std_out = P.CreatePipe,
-          std_err = P.CreatePipe
+        { P.std_in = P.CreatePipe,
+          P.std_out = P.CreatePipe,
+          P.std_err = std_err
         }
-  mapM_ setupHandle [hIn, hOut, hErr]
+  mapM_ setupHandle [hIn, hOut]
   -- log error messages created by the backend
-  return $ Handle process hIn hOut hErr
+  return $ Handle process hIn hOut hMaybeErr
   where
     setupHandle h = do
       IO.hSetBinaryMode h True
@@ -86,7 +89,7 @@ write Handle {..} cmd =
 -- | Cleanup the process' resources, terminate it and wait for it to actually exit.
 close :: Handle -> IO ()
 close Handle {..} = decorateIOError "closing the solver process" $ do
-  P.cleanupProcess (Just hIn, Just hOut, Just hErr, process)
+  P.cleanupProcess (Just hIn, Just hOut, hMaybeErr, process)
 
 -- | Create a solver process, use it to make a computation and close it.
 with ::
