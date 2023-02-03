@@ -1,3 +1,4 @@
+{-# LANGUAGE CApiFFI #-}
 {-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
@@ -17,39 +18,23 @@ where
 
 import Control.Exception (bracket)
 import Control.Monad (forM_, void)
+import qualified Data.ByteString as BS
 import Data.ByteString.Builder.Extra
   ( defaultChunkSize,
     smallChunkSize,
     toLazyByteStringWith,
     untrimmedStrategy,
   )
-import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
-import Data.Default
-import qualified Data.Map as M
-import Foreign.ForeignPtr (ForeignPtr, finalizeForeignPtr, newForeignPtr)
-import Foreign.Ptr (Ptr)
-import qualified Language.C.Inline as C
-import qualified Language.C.Inline.Context as C
-import qualified Language.C.Inline.Unsafe as CU
-import qualified Language.C.Types as C
+import qualified Data.ByteString.Unsafe
+import Foreign.C.String (CString)
+import Foreign.ForeignPtr (ForeignPtr, finalizeForeignPtr, newForeignPtr, withForeignPtr)
+import Foreign.Ptr (FunPtr, Ptr, nullPtr)
 import SMTLIB.Backends (Backend (..))
 
 data Z3Context
 
 data Z3Config
-
-C.context
-  ( C.baseCtx
-      <> C.fptrCtx
-      <> C.bsCtx
-      <> mempty
-        { C.ctxTypesTable =
-            M.singleton (C.TypeName "Z3_context") [t|Ptr Z3Context|]
-              <> M.singleton (C.TypeName "Z3_config") [t|Ptr Z3Config|]
-        }
-  )
-C.include "z3.h"
 
 newtype Config = Config
   { -- | A list of options to set during the solver's initialization.
@@ -62,45 +47,45 @@ newtype Config = Config
 defaultConfig :: Config
 defaultConfig = Config []
 
-instance Default Config where
-  def = defaultConfig
-
 newtype Handle = Handle
   { -- | A black-box representing the internal state of the solver.
     context :: ForeignPtr Z3Context
   }
 
+foreign import capi unsafe "z3.h &Z3_del_context" c_Z3_del_context :: FunPtr (Ptr Z3Context -> IO ())
+
+foreign import capi unsafe "z3.h Z3_set_param_value" c_Z3_set_param_value :: Ptr Z3Config -> CString -> CString -> IO ()
+
+foreign import capi unsafe "z3.h Z3_mk_config" c_Z3_mk_config :: IO (Ptr Z3Config)
+
+foreign import capi unsafe "z3.h Z3_mk_context" c_Z3_mk_context :: Ptr Z3Config -> IO (Ptr Z3Context)
+
+foreign import capi unsafe "z3.h Z3_del_config" c_Z3_del_config :: Ptr Z3Config -> IO ()
+
+foreign import capi unsafe "z3.h Z3_set_error_handler" c_Z3_set_error_handler :: Ptr Z3Context -> Ptr () -> IO ()
+
+-- We use ccall to avoid warnings about constness in the C side
+foreign import ccall unsafe "z3.h Z3_eval_smtlib2_string" c_Z3_eval_smtlib2_string :: Ptr Z3Context -> CString -> IO CString
+
 -- | Create a new solver instance.
 new :: Config -> IO Handle
 new config = do
-  let ctxFinalizer =
-        [C.funPtr| void free_context(Z3_context ctx) {
-                 Z3_del_context(ctx);
-                 } |]
   -- we don't set a finalizer for this object as we manually delete it during the
   -- context's creation
-  cfg <- [CU.exp| Z3_config { Z3_mk_config() } |]
+  cfg <- c_Z3_mk_config
   forM_ (parameters config) $ \(paramId, paramValue) ->
-    [CU.exp| void { Z3_set_param_value($(Z3_config cfg),
-                                       $bs-ptr:paramId,
-                                       $bs-ptr:paramValue)
-           } |]
+    BS.useAsCString paramId $ \cparamId ->
+      BS.useAsCString paramValue $ \cparamValue ->
+        c_Z3_set_param_value cfg cparamId cparamValue
   {-
   We set the error handler to ignore errors. That way if an error happens it doesn't
   cause the whole program to crash, and the error message is simply transmitted to
   the Haskell layer inside the output of the 'send' method.
   -}
-  ctx <-
-    newForeignPtr ctxFinalizer
-      =<< [CU.block| Z3_context {
-                 Z3_context ctx = Z3_mk_context($(Z3_config cfg));
-                 Z3_del_config($(Z3_config cfg));
-
-                 void ignore_error(Z3_context c, Z3_error_code e) {}
-                 Z3_set_error_handler(ctx, ignore_error);
-
-                 return ctx;
-                 } |]
+  pctx <- c_Z3_mk_context cfg
+  c_Z3_del_config cfg
+  c_Z3_set_error_handler pctx nullPtr
+  ctx <- newForeignPtr c_Z3_del_context pctx
   return $ Handle ctx
 
 -- | Release the resources associated with a Z3 instance.
@@ -123,10 +108,9 @@ toBackend handle = Backend backendSend backendSend_
                 (untrimmedStrategy smallChunkSize defaultChunkSize)
                 "\NUL"
                 cmd
-      LBS.fromStrict
-        <$> ( BS.packCString
-                =<< [CU.exp| const char* {
-               Z3_eval_smtlib2_string($fptr-ptr:(Z3_context ctx), $bs-ptr:cmd')
-               }|]
-            )
+      Data.ByteString.Unsafe.unsafeUseAsCString cmd' $ \ccmd' ->
+        withForeignPtr ctx $ \pctx -> do
+          resp <- c_Z3_eval_smtlib2_string pctx ccmd'
+          LBS.fromStrict <$> BS.packCString resp
+
     backendSend_ = void . backendSend

@@ -33,7 +33,6 @@ library
   build-depends:
       base             >=4.14    && <4.18
     , bytestring       >=0.10.12 && <0.12
-    , data-default     >=0.7.1   && <0.8
     , process          >=1.6     && <1.7
     , smtlib-backends  >=0.3     && <0.4
 

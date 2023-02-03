@@ -27,6 +27,7 @@ this file.
   implement (see also the `underlyingProcess` example)
   - remove `Config`'s `reportError` field
   - remove `Handle`'s `errorReader` field
+- **(breaking change)** removed `Data.Default` instance of `Config`
 
 ## v0.2 _(2022-12-16)_
 
