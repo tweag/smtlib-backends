@@ -25,7 +25,6 @@ import Data.ByteString.Builder.Extra
   )
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
-import Data.Default
 import qualified Data.Map as M
 import Foreign.ForeignPtr (ForeignPtr, finalizeForeignPtr, newForeignPtr)
 import Foreign.Ptr (Ptr)
@@ -61,9 +60,6 @@ newtype Config = Config
 -- | By default, don't set any options during initialization.
 defaultConfig :: Config
 defaultConfig = Config []
-
-instance Default Config where
-  def = defaultConfig
 
 newtype Handle = Handle
   { -- | A black-box representing the internal state of the solver.

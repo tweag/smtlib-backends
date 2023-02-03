@@ -24,7 +24,6 @@ import Data.ByteString.Builder
     toLazyByteString,
   )
 import qualified Data.ByteString.Char8 as BS
-import Data.Default (Default, def)
 import GHC.IO.Exception (IOException (ioe_description))
 import SMTLIB.Backends (Backend (..))
 import qualified System.IO as IO
@@ -42,9 +41,6 @@ defaultConfig :: Config
 -- if you change this, make sure to also update the comment two lines above
 -- as well as the one in @smtlib-backends-process/tests/Examples.hs@
 defaultConfig = Config "z3" ["-in"]
-
-instance Default Config where
-  def = defaultConfig
 
 data Handle = Handle
   { -- | The process running the solver.
