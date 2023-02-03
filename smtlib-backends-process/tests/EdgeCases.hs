@@ -6,6 +6,7 @@ import Data.ByteString.Builder (Builder)
 import Data.ByteString.Lazy.Char8 as LBS
 import SMTLIB.Backends as SMT
 import qualified SMTLIB.Backends.Process as Process
+import System.Process (terminateProcess, waitForProcess)
 import Test.Tasty
 import Test.Tasty.HUnit
 
@@ -21,7 +22,10 @@ edgeCases =
 pileUpStops :: IO ()
 pileUpStops = Process.with Process.defaultConfig $ \handle -> do
   let backend = Process.toBackend handle
+      process = Process.process handle
   SMT.send_ backend "(exit)"
+  _ <- waitForProcess process
+  terminateProcess process
 
 -- | Upon processing an empty command, the backend will not respond.
 emptyCommand :: IO ()

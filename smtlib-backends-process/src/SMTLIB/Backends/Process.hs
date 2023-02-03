@@ -1,6 +1,6 @@
-{-# LANGUAGE DisambiguateRecordFields #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ViewPatterns #-}
 
@@ -11,15 +11,12 @@ module SMTLIB.Backends.Process
     defaultConfig,
     new,
     close,
-    kill,
     with,
     toBackend,
   )
 where
 
-import Control.Concurrent.Async (Async, async, cancel)
 import qualified Control.Exception as X
-import Control.Monad (forever)
 import Data.ByteString.Builder
   ( Builder,
     byteString,
@@ -27,123 +24,73 @@ import Data.ByteString.Builder
     toLazyByteString,
   )
 import qualified Data.ByteString.Char8 as BS
-import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Default (Default, def)
 import GHC.IO.Exception (IOException (ioe_description))
 import SMTLIB.Backends (Backend (..))
-import System.Exit (ExitCode (ExitFailure))
 import qualified System.IO as IO
-import System.Process.Typed
-  ( Process,
-    getStderr,
-    getStdin,
-    getStdout,
-    mkPipeStreamSpec,
-    setStderr,
-    setStdin,
-    setStdout,
-    startProcess,
-    stopProcess,
-    waitExitCode,
-  )
-import qualified System.Process.Typed as P (proc)
+import System.Process as P
 
 data Config = Config
   { -- | The command to call to run the solver.
     exe :: String,
     -- | Arguments to pass to the solver's command.
-    args :: [String],
-    -- | A function for logging the solver process' messages on stderr and file
-    -- handle exceptions.
-    -- If you want line breaks between each log message, you need to implement
-    -- it yourself, e.g use @'LBS.putStr' . (<> "\n")@.
-    reportError :: LBS.ByteString -> IO ()
+    args :: [String]
   }
 
 -- | By default, use Z3 as an external process and ignores log messages.
 defaultConfig :: Config
 -- if you change this, make sure to also update the comment two lines above
 -- as well as the one in @smtlib-backends-process/tests/Examples.hs@
-defaultConfig = Config "z3" ["-in"] (\_ -> return ())
+defaultConfig = Config "z3" ["-in"]
 
 instance Default Config where
   def = defaultConfig
 
 data Handle = Handle
   { -- | The process running the solver.
-    process :: Process IO.Handle IO.Handle IO.Handle,
-    -- | A process reading the solver's error messages and logging them.
-    errorReader :: Async ()
+    process :: P.ProcessHandle,
+    -- | The input channel of the process.
+    hIn :: IO.Handle,
+    -- | The output channel of the process.
+    hOut :: IO.Handle,
+    -- | The error channel of the process.
+    hErr :: IO.Handle
   }
 
 -- | Run a solver as a process.
--- Failures relative to terminating the process are logged and discarded.
 new ::
   -- | The solver process' configuration.
   Config ->
   IO Handle
-new config = decorateIOError "creating the solver process" $ do
-  solverProcess <-
-    startProcess $
-      setStdin createLoggedPipe $
-        setStdout createLoggedPipe $
-          setStderr createLoggedPipe $
-            P.proc (exe config) (args config)
+new Config {..} = decorateIOError "creating the solver process" $ do
+  (Just hIn, Just hOut, Just hErr, process) <-
+    P.createProcess
+      (P.proc exe args)
+        { std_in = P.CreatePipe,
+          std_out = P.CreatePipe,
+          std_err = P.CreatePipe
+        }
+  mapM_ setupHandle [hIn, hOut, hErr]
   -- log error messages created by the backend
-  solverErrorReader <-
-    async $
-      forever
-        ( do
-            errs <- BS.hGetLine $ getStderr solverProcess
-            reportError' errs
-        )
-        `X.catch` \X.SomeException {} ->
-          return ()
-  return $ Handle solverProcess solverErrorReader
+  return $ Handle process hIn hOut hErr
   where
-    createLoggedPipe =
-      mkPipeStreamSpec $ \_ h -> do
-        IO.hSetBinaryMode h True
-        IO.hSetBuffering h $ IO.BlockBuffering Nothing
-        return
-          ( h,
-            IO.hClose h `X.catch` \ex ->
-              reportError' $ BS.pack $ show (ex :: X.IOException)
-          )
-    reportError' = reportError config . LBS.fromStrict
+    setupHandle h = do
+      IO.hSetBinaryMode h True
+      IO.hSetBuffering h $ IO.BlockBuffering Nothing
 
 -- | Send a command to the process without reading its response.
 write :: Handle -> Builder -> IO ()
-write handle cmd =
+write Handle {..} cmd =
   decorateIOError msg $ do
-    hPutBuilder (getStdin $ process handle) $ cmd <> "\n"
-    IO.hFlush $ getStdin $ process handle
+    hPutBuilder hIn $ cmd <> "\n"
+    IO.hFlush hIn
   where
     msg = "sending command " ++ show (toLazyByteString cmd) ++ " to the solver"
 
--- | Cleanup the process' resources.
-cleanup :: Handle -> IO ()
-cleanup = cancel . errorReader
-
--- | Cleanup the process' resources, send it an @(exit)@ command and wait for it
--- to exit.
-close :: Handle -> IO ExitCode
-close handle = decorateIOError "closing the solver process" $ do
-  cleanup handle
-  let p = process handle
-  ( do
-      write handle "(exit)"
-      waitExitCode p
-    )
-    `X.catch` \(_ :: X.IOException) -> do
-      stopProcess p
-      return $ ExitFailure 1
-
--- | Cleanup the process' resources and kill it immediately.
-kill :: Handle -> IO ()
-kill handle = decorateIOError "killing the solver process" $ do
-  cleanup handle
-  stopProcess $ process handle
+-- | Cleanup the process' resources, terminate it and wait for it to actually exit.
+close :: Handle -> IO ()
+close Handle {..} = decorateIOError "closing the solver process" $ do
+  P.cleanupProcess (Just hIn, Just hOut, Just hErr, process)
 
 -- | Create a solver process, use it to make a computation and close it.
 with ::
@@ -211,7 +158,7 @@ toBackend handle = Backend backendSend backendSend_
     continueNextLine :: (Builder -> BS.ByteString -> IO a) -> Builder -> IO a
     continueNextLine f acc = do
       next <-
-        BS.hGetLine (getStdout $ process handle) `X.catch` \ex ->
+        BS.hGetLine (hOut handle) `X.catch` \ex ->
           X.throwIO
             ( ex
                 { ioe_description =

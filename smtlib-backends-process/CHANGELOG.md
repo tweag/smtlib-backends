@@ -14,13 +14,19 @@ this file.
 
 ### Changed
 - make the test-suite compatible with `smtlib-backends-0.3`
-- **(breaking change)** rename `Process.close` to `Process.kill`
-- **(breaking change)** rename `Process.wait` to `Process.close` and improve it
-  - ensure the process gets killed even if an error is caught
-  - send an `(exit)` command before waiting for the process to exit
-  - this means `Process.with` now closes the process with this new version of
-    `Process.close`, hence gracefully
+- **(breaking change)** use `process` instead of `typed-process` to manage the underlying process
+  - change the definition of the `Process.Handle` datatype accordingly
+  - remove `Process.wait`
+  - there is now a single example in the test-suite showing how to 
+    manage the underlying process and its I/O channels
 - improve error messages inside `Process.toBackend`
+    
+### Removed
+- removed `Process.wait`
+- **(breaking change)** removed logging capabilities, this is now on the user to
+  implement (see also the `underlyingProcess` example)
+  - remove `Config`'s `reportError` field
+  - remove `Handle`'s `errorReader` field
 
 ## v0.2 _(2022-12-16)_
 
