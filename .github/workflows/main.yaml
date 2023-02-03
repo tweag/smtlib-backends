@@ -12,10 +12,10 @@ jobs:
     - uses: actions/checkout@master
     - name: Check links
       uses: gaurav-nelson/github-action-markdown-link-check@v1
-      with: 
+      with:
         use-verbose-mode: 'yes'
         file-path: './README.md'
-    
+
   formatting:
     runs-on: ubuntu-22.04
     name: Check formatting
@@ -40,3 +40,16 @@ jobs:
           access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
     - name: Test backends
       run: nix develop .#lightweight --command cabal test all
+
+  documentation:
+    runs-on: ubuntu-22.04
+    name: Check for missing documentation
+    steps:
+    - uses: actions/checkout@v3.1.0
+    - name: Install nix
+      uses: cachix/install-nix-action@v18
+      with:
+        extra_nix_config: |
+          access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+    - name: Run haddock
+      run: nix develop .#lightweight --command sh '-c' 'cabal haddock | ! grep Missing'
