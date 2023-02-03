@@ -13,8 +13,8 @@ mkDerivation {
   ];
   librarySystemDepends = [ gomp z3 ];
   testHaskellDepends = [
-    base bytestring data-default smtlib-backends smtlib-backends-tests
-    tasty tasty-hunit
+    base bytestring smtlib-backends smtlib-backends-tests tasty
+    tasty-hunit
   ];
   description = "An SMT-LIB backend implemented using Z3's C API";
   license = lib.licenses.mit;
