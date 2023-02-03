@@ -10,7 +10,7 @@ import qualified Data.ByteString.Lazy.Char8 as LBS
 import SMTLIB.Backends (QueuingFlag (..), command, command_, flushQueue, initSolver)
 import qualified SMTLIB.Backends.Process as Process
 import System.IO (BufferMode (LineBuffering), hClose, hGetLine, hSetBuffering)
-import System.Process (waitForProcess)
+import System.Process
 import Test.Tasty
 import Test.Tasty.HUnit
 
@@ -49,11 +49,7 @@ basicUse =
 setOptions :: IO ()
 setOptions =
   -- here we use a custom-made configuration
-  let myConfig =
-        Process.Config
-          { Process.exe = "z3",
-            Process.args = ["-in", "solver.timeout=10000"]
-          }
+  let myConfig = System.Process.proc "z3" ["-in", "solver.timeout=10000"]
    in Process.with myConfig $ \handle -> do
         solver <- initSolver Queuing $ Process.toBackend handle
         _ <- command solver "(get-info :name)"
@@ -73,8 +69,9 @@ underlyingProcess = do
   --
   -- we'll close the process manually so we just launch it with 'Process.new'
   -- instead of using `Process.with`
-  Process.Handle {..} <- Process.new Process.defaultConfig
-  -- the main use of accessing the internals of tbe 'Process.Handle' is to monitor
+  Process.Handle {hMaybeErr=Just hErr, ..} <-
+    Process.new Process.defaultConfig { std_err = CreatePipe }
+  -- the main use of accessing the internals of the 'Process.Handle' is to monitor
   -- the process' error channel
   _ <- async $ forever (hGetLine hErr >>= putStrLn) `catch` \SomeException {} -> return ()
   -- we can also change the settings of the underlying process
@@ -86,7 +83,7 @@ underlyingProcess = do
   -- for it to end, but make sure you also release its other resources
   LBS.hPutStrLn hIn "(exit)"
   mapM_ hClose [hIn, hOut, hErr]
-  _ <- waitForProcess process
+  _ <- System.Process.waitForProcess process
   return ()
 
 -- | An example on how to force the content of the queue to be evaluated.

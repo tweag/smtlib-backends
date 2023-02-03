@@ -17,12 +17,13 @@ overhead. See the documentation of
 
 Here is an example, using GHCi, of how to communicate with the solver
 [Yices2](https://yices.csl.sri.com/) as an external process.
-It requires the libraries `smtlib-backends` and `smtlib-backends-process`.
+It requires the libraries `process`, `smtlib-backends`, and `smtlib-backends-process`.
 ```haskell
 > import qualified SMTLIB.Backends.Process as P
 > import qualified SMTLIB.Backends as SMT
+> import qualified System.Process
 > :set -XOverloadedStrings
-> let cfg = P.defaultConfig { P.exe = "yices-smt2", P.args = [] }
+> let cfg = System.Process.proc "yices-smt2" []
 > yicesProcess <- P.new cfg
 > yices <- SMT.initSolver SMT.NoQueuing (P.toBackend yicesProcess)
 > SMT.command yices "(get-info :name)"
