@@ -13,6 +13,7 @@ module SMTLIB.Backends.Process
     close,
     with,
     toBackend,
+    P.StdStream (..),
   )
 where
 
