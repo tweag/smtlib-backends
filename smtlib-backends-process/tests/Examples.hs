@@ -3,10 +3,13 @@
 
 module Examples (examples) where
 
+import Control.Concurrent.Async (async)
+import Control.Exception (SomeException (SomeException), catch)
+import Control.Monad (forever)
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import SMTLIB.Backends (QueuingFlag (..), command, command_, flushQueue, initSolver)
 import qualified SMTLIB.Backends.Process as Process
-import System.IO (BufferMode (LineBuffering), hClose, hSetBuffering)
+import System.IO (BufferMode (LineBuffering), hClose, hGetLine, hSetBuffering)
 import System.Process (waitForProcess)
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -57,19 +60,24 @@ setOptions =
         return ()
 
 -- | An example of how to get the backend's underlying process and manage it
--- manually.
+-- manually, for instance when you want to monitor the process' error channel.
 underlyingProcess :: IO ()
 underlyingProcess = do
   -- since the 'Process' module exposes its 'Handle' datatype entirely, we have
   -- direct access to the process and its I/O channels
-  -- you'll probably never need this as the library already provides enough
-  -- bindings for common needs and chooses the process' settings to ensure the
-  -- communication with solvers is as fast as possible
+  -- this can in particular be useful if you want to monitor the process' errors
+  -- that it prints on its error channel
+  -- otherwise, it's unlikely you'll need this as the library already provides
+  -- enough bindings for common needs and chooses the process' settings to
+  -- ensure the communication with solvers is as fast as possible
   --
   -- we'll close the process manually so we just launch it with 'Process.new'
   -- instead of using `Process.with`
   Process.Handle {..} <- Process.new Process.defaultConfig
-  -- we can now change the settings of the underlying process
+  -- the main use of accessing the internals of tbe 'Process.Handle' is to monitor
+  -- the process' error channel
+  _ <- async $ forever (hGetLine hErr >>= putStrLn) `catch` \SomeException {} -> return ()
+  -- we can also change the settings of the underlying process
   -- for instance here we change the buffering mode of the process' input channel
   hSetBuffering hIn LineBuffering
   -- the default way to close the process is to use 'Process.close', which sends
