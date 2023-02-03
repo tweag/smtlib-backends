@@ -3,7 +3,7 @@
 All notable changes to the smtlib-backends-z3 library will be documented in this
 file.
 
-## v0.3
+## v0.3 _(2023-02-03)_
 
 ### Added
 - add `Z3.defaultConfig`, synonym for `def`
@@ -18,7 +18,7 @@ file.
   at initialization time
   - add corresponding examples in the test-suite
 
-## v0.2
+## v0.2 _(2022-12-16)_
 
 ### Added
 - add usage examples in the test-suite

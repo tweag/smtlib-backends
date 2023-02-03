@@ -3,7 +3,7 @@
 All notable changes to the smtlib-backends-process library will be documented in
 this file.
 
-## v0.3
+## v0.3 _(2023-02-03)_
 
 ### Added
 - add tests for documenting edge cases of the backends
