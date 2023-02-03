@@ -1,6 +1,6 @@
 ## This file has been generated automatically.
 ## Run `nix run .#makeBackendsDerivation` to update it.
-{ mkDerivation, base, bytestring, containers, data-default, gomp
+{ mkDerivation, base, bytestring, containers, gomp
 , inline-c, lib, smtlib-backends, smtlib-backends-tests, tasty
 , tasty-hunit, z3
 }:
@@ -9,7 +9,7 @@ mkDerivation {
   version = "0.3";
   src = ./.;
   libraryHaskellDepends = [
-    base bytestring containers data-default inline-c smtlib-backends
+    base bytestring containers inline-c smtlib-backends
   ];
   librarySystemDepends = [ gomp z3 ];
   testHaskellDepends = [
