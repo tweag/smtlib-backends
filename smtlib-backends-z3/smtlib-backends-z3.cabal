@@ -29,6 +29,7 @@ source-repository this
 
 library
   hs-source-dirs:   src
+  c-sources: cbits/z3.c
   ghc-options:      -Wall -Wunused-packages
   exposed-modules:  SMTLIB.Backends.Z3
   build-depends:
