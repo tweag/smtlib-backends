@@ -52,4 +52,4 @@ jobs:
         extra_nix_config: |
           access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
     - name: Run haddock
-      run: nix develop .#lightweight --command sh '-c' 'cabal haddock | ! grep Missing'
+      run: nix develop .#lightweight --command sh '-c' 'cabal haddock all | ! grep Missing'
