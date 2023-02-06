@@ -65,6 +65,8 @@ foreign import capi unsafe "z3.h Z3_del_config" c_Z3_del_config :: Ptr Z3Config 
 foreign import capi unsafe "z3.h Z3_set_error_handler" c_Z3_set_error_handler :: Ptr Z3Context -> Ptr () -> IO ()
 
 -- We use ccall to avoid warnings about constness in the C side
+-- In the meantime we check in cbits/z3.c that the type of the function is
+-- compatible.
 foreign import ccall unsafe "z3.h Z3_eval_smtlib2_string" c_Z3_eval_smtlib2_string :: Ptr Z3Context -> CString -> IO CString
 
 -- | Create a new solver instance.
