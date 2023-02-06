@@ -2,8 +2,8 @@ name:               smtlib-backends-process
 version:            0.3
 synopsis:           An SMT-LIB backend running solvers as external processes.
 description:
-  This library implements an SMT-LIB backend (in the sense of the smtlib-backends
-  package) using by running solvers as external processes.
+  This library implements an SMT-LIB backend (in the sense of the
+  smtlib-backends package) which runs solvers as external processes.
 
 license:            MIT
 license-file:       LICENSE
@@ -22,7 +22,7 @@ source-repository head
 source-repository this
   type:     git
   location: https://github.com/tweag/smtlib-backends
-  tag:      0.2
+  tag:      0.3
   subdir:   smtlib-backends-process
 
 library
