@@ -11,7 +11,10 @@ as a library.
 In addition, the API allows for queuing commands so that they are sent to the backend
 only when a response is needed, as we have observed this to reduce the communication
 overhead. See the documentation of
-[SMTLIB.Backends.Solver](src/SMTLIB/Backends.hs) for the details.
+[SMTLIB.Backends.Solver](src/SMTLIB/Backends.hs) for the details, and the
+[announcement blog post][announcement] for further motivation.
+
+[announcement]: https://www.tweag.io/blog/2023-02-14-smtlib-backends/
 
 ## Usage
 
