@@ -10,7 +10,9 @@ description:
 license:            MIT
 license-file:       LICENSE
 author:             Quentin Aristote
-maintainer:         facundo.dominguez@tweag.io, gabriel.hondet@tweag.io
+maintainer:
+  facundo.dominguez@tweag.io, gabriel.hondet@tweag.io, mathieu.montin@tweag.io
+
 build-type:         Simple
 category:           SMT
 cabal-version:      >=1.10
@@ -29,7 +31,7 @@ source-repository this
 
 library
   hs-source-dirs:   src
-  c-sources: cbits/z3.c
+  c-sources:        cbits/z3.c
   ghc-options:      -Wall -Wunused-packages
   exposed-modules:  SMTLIB.Backends.Z3
   build-depends:
