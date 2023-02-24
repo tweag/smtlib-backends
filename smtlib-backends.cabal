@@ -12,7 +12,9 @@ description:
 license:            MIT
 license-file:       LICENSE
 author:             Quentin Aristote
-maintainer:         quentin.aristote@tweag.io
+maintainer:
+  facundo.dominguez@tweag.io, gabriel.hondet@tweag.io, mathieu.montin@tweag.io
+
 build-type:         Simple
 category:           SMT
 cabal-version:      >=1.10
