@@ -49,10 +49,9 @@ defaultConfig = Config []
 
 data Handle = Handle
   { -- | A black-box representing the internal state of the solver.
-    solver :: ForeignPtr CVC5Solver
-  , parser :: ForeignPtr CVC5Parser
+    solver :: ForeignPtr CVC5Solver,
+    parser :: ForeignPtr CVC5Parser
   }
-
 
 foreign import ccall unsafe "cvc5.h cvc5_solver_init" solver_init :: IO (Ptr CVC5Solver)
 
@@ -64,7 +63,7 @@ foreign import ccall unsafe "cvc5.h cvc5_parser_init" parser_init :: Ptr CVC5Sol
 
 foreign import ccall unsafe "cvc5.h &cvc5_parser_free" parser_free :: FunPtr (Ptr CVC5Parser -> IO ())
 
-foreign import ccall unsafe "cvc5.h cvc5_eval_smtlib2_string" eval_smtlib2_string :: Ptr CVC5Solver -> Ptr CVC5Parser ->  CString -> IO CString
+foreign import ccall unsafe "cvc5.h cvc5_eval_smtlib2_string" eval_smtlib2_string :: Ptr CVC5Solver -> Ptr CVC5Parser -> CString -> IO CString
 
 -- | Create a new solver instance.
 new :: Config -> IO Handle

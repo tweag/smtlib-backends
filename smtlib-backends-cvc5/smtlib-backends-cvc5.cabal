@@ -9,13 +9,12 @@ description:
 license:            MIT
 license-file:       LICENSE
 author:             Sam Balco
-
 build-type:         Simple
 category:           SMT
 extra-source-files: 
-  CHANGELOG.md
   cbits/cvc5.h
   cbits/cvc5.cpp
+  CHANGELOG.md
 
 source-repository head
   type:     git
@@ -30,11 +29,12 @@ source-repository this
 
 library
   hs-source-dirs:   src
-  includes: cbits/cvc5.h
-  cxx-sources: cbits/cvc5.cpp
-  extra-libraries: 
-      cvc5
-      cvc5parser
+  includes:         cbits/cvc5.h
+  cxx-sources:      cbits/cvc5.cpp
+  extra-libraries:
+    cvc5
+    cvc5parser
+
   ghc-options:      -Wall -Wunused-packages
   exposed-modules:  SMTLIB.Backends.CVC5
   build-depends:
@@ -43,6 +43,7 @@ library
     , smtlib-backends  >=0.3     && <0.4
 
   default-language: Haskell2010
+
 test-suite test
   type:             exitcode-stdio-1.0
   hs-source-dirs:   tests
@@ -56,15 +57,18 @@ test-suite test
       base
     , bytestring
     , smtlib-backends
-    , smtlib-backends-tests
     , smtlib-backends-cvc5
+    , smtlib-backends-tests
     , tasty
     , tasty-hunit
+
   default-language: Haskell2010
 
-  if os(darwin)
+  if os(osx)
     ghc-options: -pgml clang++
+
     -- fix for https://gitlab.haskell.org/ghc/ghc/-/issues/11829
-    ld-options: -Wl,-keep_dwarf_unwind
+    ld-options:  "-Wl,-keep_dwarf_unwind"
+
   else
     ghc-options: -pgml g++

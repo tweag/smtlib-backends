@@ -33,7 +33,6 @@ basicUse =
     _ <- command solver "(get-info :name)"
     return ()
 
-
 -- | An example on how to force the content of the queue to be evaluated.
 flushing :: IO ()
 flushing = do

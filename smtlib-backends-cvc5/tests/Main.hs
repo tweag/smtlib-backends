@@ -4,8 +4,8 @@ import qualified Data.ByteString.Lazy.Char8 as LBS
 import EdgeCases (edgeCases)
 import Examples (examples)
 import SMTLIB.Backends
-import SMTLIB.Backends.Tests
 import qualified SMTLIB.Backends.CVC5 as CVC5
+import SMTLIB.Backends.Tests
 import Test.Tasty
 import Test.Tasty.HUnit
 
