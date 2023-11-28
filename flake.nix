@@ -14,8 +14,8 @@
         src = pkgs.fetchFromGitHub {
           owner  = "cvc5";
           repo   = "cvc5";
-          rev    = "a33daf1b313f71332a00cc4556577962cc731bd2";
-          hash  = "sha256-uKIKjsBs4neC2ZotOeyHO6ddY3CCqwoePB7gfvVogHY=";
+          rev    = "115d3d200b304e234cfd97f0eec861a620d5c998";
+          hash  = "sha256-sZ6nTLyyddatt4r4LcW58ULZv9/fjfRfK0eoGNvmUCI=";
         };
         nativeBuildInputs = old.nativeBuildInputs ++ [ pkgs.flex ];
         buildInputs = with pkgs; [

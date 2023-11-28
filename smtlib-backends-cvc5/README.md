@@ -10,7 +10,7 @@ This Haskell library provides different low-level ways of interacting with SMT
 solvers using [SMT-LIB](https://smtlib.cs.uiowa.edu/).
 
 This libary is currently experimental as it requires the latest version of CVC5
-(github commit a33daf1b313f71332a00cc4556577962cc731bd2 as of writing) which exports
+(github commit 115d3d200b304e234cfd97f0eec861a620d5c998 as of writing) which exports
 a CVC5's SMTLIB parser as an API.
 
 `smtlib-backends-cvc5` has also only been tested on GHC 9.4, due to this bug on macOS 
