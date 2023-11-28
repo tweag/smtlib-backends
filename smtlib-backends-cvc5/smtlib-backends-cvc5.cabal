@@ -1,0 +1,68 @@
+cabal-version:      3.0
+name:               smtlib-backends-cvc5
+version:            0.1
+synopsis:           An SMT-LIB backend implemented using CVC5's C API.
+description:
+  This library implements an SMT-LIB backend (in the sense of the smtlib-backends
+  package) using inlined calls to CVC5's C++ API.
+
+license:            MIT
+license-file:       LICENSE
+author:             Sam Balco
+
+build-type:         Simple
+category:           SMT
+extra-source-files: 
+  CHANGELOG.md
+  cbits/cvc5.h
+  cbits/cvc5.cpp
+
+source-repository head
+  type:     git
+  location: https://github.com/tweag/smtlib-backends
+  subdir:   smtlib-backends-cvc5
+
+source-repository this
+  type:     git
+  location: https://github.com/tweag/smtlib-backends
+  tag:      0.3
+  subdir:   smtlib-backends-cvc5
+
+library
+  hs-source-dirs:   src
+  includes: cbits/cvc5.h
+  cxx-sources: cbits/cvc5.cpp
+  extra-libraries: 
+      cvc5
+      cvc5parser
+  ghc-options:      -Wall -Wunused-packages
+  exposed-modules:  SMTLIB.Backends.CVC5
+  build-depends:
+      base             >=4.14    && <4.19
+    , bytestring       >=0.10.12 && <0.12
+    , smtlib-backends  >=0.3     && <0.4
+
+  default-language: Haskell2010
+test-suite test
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   tests
+  main-is:          Main.hs
+  other-modules:
+    EdgeCases
+    Examples
+
+  ghc-options:      -threaded -Wall -Wunused-packages
+  build-depends:
+      base
+    , bytestring
+    , smtlib-backends
+    , smtlib-backends-tests
+    , smtlib-backends-cvc5
+    , tasty
+    , tasty-hunit
+  default-language: Haskell2010
+
+  if os(darwin)
+    ghc-options: -pgml clang++
+    -- fix for https://gitlab.haskell.org/ghc/ghc/-/issues/11829
+    ld-options: -Wl,-keep_dwarf_unwind
