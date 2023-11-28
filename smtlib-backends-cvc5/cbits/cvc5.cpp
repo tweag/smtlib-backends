@@ -91,7 +91,7 @@ char *cvc5_eval_smtlib2_string(cvc5_solver *slv, cvc5_parser *parser, char const
   {
     os << "(error \"" << e.getMessage() << "\")" << std::endl;
   }
-  // catch (ParserException& e)
+  // should catch (ParserException& e) here - see https://github.com/cvc5/cvc5/issues/10181
   catch (...) 
   {
     os << "(error \"unknown parser exception\")" << std::endl;
