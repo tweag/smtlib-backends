@@ -29,7 +29,9 @@ source-repository this
 
 library
   hs-source-dirs:   src
-  includes:         cbits/cvc5.h
+  include-dirs:     cbits
+  includes:
+    cvc5.h
   cxx-sources:      cbits/cvc5.cpp
   extra-libraries:
     cvc5

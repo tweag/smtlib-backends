@@ -18,8 +18,7 @@ examples =
 basicUse :: IO ()
 basicUse =
   -- 'CVC5.with' runs a computation using the 'CVC5' backend
-  -- it takes a configuration object as argument, whose use we describe in
-  -- 'settingOptions'
+  -- it takes a configuration object as argument
   -- here we just use the default configuration, literally @'CVC5.Config' []@
   CVC5.with CVC5.defaultConfig $ \handle -> do
     -- first, we make the CVC5 handle into an actual backend
