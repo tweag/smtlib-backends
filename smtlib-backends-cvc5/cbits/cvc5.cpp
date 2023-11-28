@@ -3,6 +3,7 @@
 #include <cvc5/cvc5_parser.h>
 
 #include <iostream>
+#include <cstring>
 
 using namespace cvc5;
 using namespace cvc5::parser;

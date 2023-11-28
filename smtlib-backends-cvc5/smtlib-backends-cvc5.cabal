@@ -66,3 +66,5 @@ test-suite test
     ghc-options: -pgml clang++
     -- fix for https://gitlab.haskell.org/ghc/ghc/-/issues/11829
     ld-options: -Wl,-keep_dwarf_unwind
+  else
+    ghc-options: -pgml g++
