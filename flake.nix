@@ -1,5 +1,6 @@
 {
   inputs.flake-utils.url = github:numtide/flake-utils;
+  inputs.nixpkgs.url = github:NixOS/nixpkgs;
 
   outputs = {
     self,
@@ -8,6 +9,20 @@
   }:
     flake-utils.lib.eachDefaultSystem (system: let
       pkgs = nixpkgs.legacyPackages.${system};
+      cvc5_latest = pkgs.cvc5.overrideAttrs (old: {
+        version = "2023-11-27";
+        src = pkgs.fetchFromGitHub {
+          owner  = "cvc5";
+          repo   = "cvc5";
+          rev    = "a33daf1b313f71332a00cc4556577962cc731bd2";
+          hash  = "sha256-uKIKjsBs4neC2ZotOeyHO6ddY3CCqwoePB7gfvVogHY=";
+        };
+        nativeBuildInputs = old.nativeBuildInputs ++ [ pkgs.flex ];
+        buildInputs = with pkgs; [
+          cadical.dev symfpu gmp gtest libantlr3c antlr3_4 boost jdk
+          (python3.withPackages (ps: with ps; [ pyparsing toml tomli ]))
+        ];
+      });
       hpkgs = pkgs.haskellPackages;
       smtlib-backends = hpkgs.callPackage ./smtlib-backends.nix {};
       smtlib-backends-process = hpkgs.callPackage ./smtlib-backends-process/smtlib-backends-process.nix {
@@ -16,6 +31,10 @@
       smtlib-backends-tests = hpkgs.callPackage ./smtlib-backends-tests/smtlib-backends-tests.nix {inherit smtlib-backends;};
       smtlib-backends-z3 = hpkgs.callPackage ./smtlib-backends-z3/smtlib-backends-z3.nix {
         inherit smtlib-backends smtlib-backends-tests;
+      };
+      smtlib-backends-cvc5 = hpkgs.callPackage ./smtlib-backends-cvc5/smtlib-backends-cvc5.nix {
+        inherit smtlib-backends smtlib-backends-tests;
+        cvc5 = cvc5_latest;
       };
     in {
       formatter = pkgs.alejandra;
@@ -66,12 +85,13 @@
 
       devShells = let
         ## Needed by Z3 tests and haskell language server
-        LD_LIBRARY_PATH = with pkgs; lib.strings.makeLibraryPath [z3];
+        LD_LIBRARY_PATH = with pkgs; lib.strings.makeLibraryPath [z3 cvc5_latest];
         packages = _: [
           smtlib-backends
           smtlib-backends-tests
           smtlib-backends-process
           smtlib-backends-z3
+          smtlib-backends-cvc5
         ];
       in {
         default = hpkgs.shellFor {
@@ -86,14 +106,14 @@
               haskell-language-server
               cabal-fmt
             ])
-            ++ (with pkgs; [z3 ormolu]);
+            ++ (with pkgs; [z3 cvc5_latest ormolu]);
 
           inherit LD_LIBRARY_PATH;
         };
 
         ## Lightweight development shell.
         lightweight = hpkgs.shellFor {
-          buildInputs = with pkgs; [ghc cabal-install z3];
+          buildInputs = with pkgs; [ghc cabal-install z3 cvc5_latest];
           inherit packages;
           inherit LD_LIBRARY_PATH;
         };

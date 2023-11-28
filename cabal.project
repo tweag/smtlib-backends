@@ -2,3 +2,4 @@ packages: ./
           smtlib-backends-process/
           smtlib-backends-tests/
           smtlib-backends-z3/
+          smtlib-backends-cvc5/
