@@ -3,10 +3,13 @@
 This Haskell library provides different low-level ways of interacting with SMT
 solvers using [SMT-LIB](https://smtlib.cs.uiowa.edu/).
 
-We currently provide two different backends: a classic backend, available in the
-`smtlib-backends-process` package, implemented by running solvers as external processes,
-and a faster backend, available in the `smtlib-backends-z3` package, implemented using Z3
-as a library.
+We currently provide the following backends:
+* a classic backend, available in the `smtlib-backends-process` package, implemented by
+  running solvers as external processes,
+* a faster backend, available in the `smtlib-backends-z3` package, implemented using Z3
+  as a library, and
+* an experimental backend, available in the `smtlib-backends-cvc5` package, implemented
+  using an unstable version of CVC5 as a library.
 
 In addition, the API allows for queuing commands so that they are sent to the backend
 only when a response is needed, as we have observed this to reduce the communication
@@ -37,6 +40,7 @@ respective test-suites:
 - [examples for the `Process`
   backend](smtlib-backends-process/tests/Examples.hs)
 - [examples for the `Z3` backend](smtlib-backends-z3/tests/Examples.hs)
+- [examples for the `CVC5` backend](smtlib-backends-cvc5/tests/Examples.hs)
 
 ## Building and testing
 
@@ -45,7 +49,7 @@ flake](https://www.tweag.io/blog/2020-05-25-flakes/).
 
 Another option is to manually install Z3 to use the process backend, and the Z3
 C library to use the Z3 backend. Then you can build and test the libraries using
-`cabal build` and `cabal test`.
+`cabal build` and `cabal test`. It works analogously if using CVC5 as a library.
 
 ## Implementing backends
 
