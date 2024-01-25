@@ -40,6 +40,20 @@ newtype Config = Config
   { -- | A list of options to set during the solver's initialization.
     -- Each pair is of the form @(paramId, paramValue)@, e.g.
     -- @(":produce-models", "true")@.
+    --
+    -- Note that Z3 has different kinds of parameters, and not all of
+    -- them can be set here. In particular, there are the so called
+    -- global and module parameters with a value that affects
+    -- all solver instances (in our experiments those started after
+    -- changing the parameter). We have found some of these global
+    -- parameters to be ignored when provided here. You might have more
+    -- luck setting them after starting the solver:
+    --
+    -- > command_ solver "(set-option :parameter_name value)"
+    --
+    -- Or using `Z3_global_param_set` from the Z3 API directly.
+    --
+    -- > foreign import capi unsafe "z3.h Z3_global_param_set" c_Z3_global_param_set :: CString -> CString -> IO ()
     parameters :: [(BS.ByteString, BS.ByteString)]
   }
 

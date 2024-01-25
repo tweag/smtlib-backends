@@ -3,6 +3,11 @@
 All notable changes to the smtlib-backends-z3 library will be documented in this
 file.
 
+## next
+
+### Added
+- note about `Z3.Config` limitations
+
 ## v0.3 _(2023-02-03)_
 
 ### Added
