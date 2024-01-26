@@ -44,8 +44,7 @@ newtype Config = Config
     -- Note that Z3 has different kinds of parameters, and not all of
     -- them can be set here. In particular, there are the so called
     -- global and module parameters with a value that affects
-    -- all solver instances (in our experiments those started after
-    -- changing the parameter). We have found some of these global
+    -- all solver instances. We have found some of these global
     -- parameters to be ignored when provided here. You might have more
     -- luck setting them after starting the solver:
     --
