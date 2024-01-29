@@ -6,6 +6,10 @@ file.
 ## next
 
 ### Added
+
+## v0.3.1 _(2024-01-29)_
+
+### Added
 - note about `Z3.Config` limitations
 
 ## v0.3 _(2023-02-03)_
