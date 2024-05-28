@@ -12,7 +12,7 @@ The same stands for the changelogs of
 [smtlib-backends-z3](smtlib-backends-z3/CHANGELOG.md), except the version
 numbers simply follow that of `smtlib-backends`.
 
-## Next
+## v0.4 _(2024-05-28)_
 
 ### Changed
 
