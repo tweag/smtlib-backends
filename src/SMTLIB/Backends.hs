@@ -118,7 +118,12 @@ initSolver queuing solverBackend = do
 -- | Have the solver evaluate a SMT-LIB command.
 -- This forces the queued commands to be evaluated as well, but their results are
 -- *not* checked for correctness.
--- For a fixed backend, this function is *not* thread-safe.
+--
+-- Concurrent calls to different solvers are thread-safe, but not concurrent
+-- calls on the same solver or the same backend.
+--
+-- Only one command must be given per invocation, or the multiple commands must
+-- together produce the output of one command only.
 command :: Solver -> Builder -> IO LBS.ByteString
 command solver cmd = do
   send (backend solver)
@@ -130,8 +135,13 @@ command solver cmd = do
 -- In 'NoQueuing' mode, the result is checked for correctness. In 'Queuing'
 -- mode, (unless the queue is flushed and evaluated right after) the command
 -- must not produce any output when evaluated, and its output is thus in
--- particular not checked for correctness. For a fixed backend, this function is
--- *not* thread-safe.
+-- particular not checked for correctness.
+--
+-- Concurrent calls to different solvers are thread-safe, but not concurrent
+-- calls on the same solver or the same backend.
+--
+-- Only one command must be given per invocation, or the multiple commands must
+-- together produce the output of one command only.
 command_ :: Solver -> Builder -> IO ()
 command_ solver cmd =
   case queue solver of
