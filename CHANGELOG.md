@@ -12,6 +12,12 @@ The same stands for the changelogs of
 [smtlib-backends-z3](smtlib-backends-z3/CHANGELOG.md), except the version
 numbers simply follow that of `smtlib-backends`.
 
+## Next
+
+### Changed
+
+- **(breaking change)** stop changing the default of the `produce-models` option.
+
 ## v0.3 _(2023-02-03)_
 
 ### Added
