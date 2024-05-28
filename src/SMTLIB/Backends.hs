@@ -112,7 +112,6 @@ initSolver queuing solverBackend = do
       -- alternatively, we may consider that the user wanting both features should
       -- implement their own backend that deals with this
       setOption solver "print-success" "true"
-  setOption solver "produce-models" "true"
   return solver
 
 -- | Have the solver evaluate a SMT-LIB command.
