@@ -50,7 +50,7 @@ data QueuingFlag
     -- on the solver's queue.
     --
     -- It is the responsibility of the caller to identify these commands and
-    -- sent them through the 'command_' call.
+    -- send them through the 'command_' call.
     --
     -- When a command is sent whose output is actually necessary, the queue is
     -- flushed and sent as a batch to the backend.
@@ -82,8 +82,8 @@ flush q = do
   writeIORef q mempty
   return cmds
 
--- | A solver is essentially a wrapper around a solver backend. It also comes an
--- optional queue of commands to send to the backend.
+-- | A solver is essentially a wrapper around a solver backend. It also comes
+-- with an optional queue of commands to send to the backend.
 data Solver = Solver
   { -- | The backend processing the commands.
     backend :: Backend,
@@ -121,7 +121,7 @@ initSolver queuing solverBackend = do
       command_ solver "(set-option :print-success true)"
   return solver
 
--- | Have the solver evaluate a SMT-LIB command.
+-- | Have the solver evaluate an SMT-LIB command.
 -- This forces the queued commands to be evaluated as well, but their results are
 -- *not* checked for correctness.
 --
