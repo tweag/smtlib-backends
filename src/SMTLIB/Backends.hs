@@ -36,8 +36,35 @@ data Backend = Backend
 
 type Queue = IORef Builder
 
--- | A boolean-equivalent datatype indicating whether to enable queuing.
-data QueuingFlag = Queuing | NoQueuing
+-- | Whether to enable queuing for a 'Solver'.
+data QueuingFlag
+  = -- | In 'NoQueuing' mode, the 'Solver' has no queue and commands are sent to
+    -- the backend immediately.
+    --
+    -- In this mode, the option @:print-success@ is enabled by 'initSolver' to
+    -- monitor that commands are being accepted by the SMT solver.
+    NoQueuing
+  | -- | In 'Queuing' mode, commands whose output is not strictly necessary for
+    -- the rest of the computation (typically the ones whose output should just
+    -- be @success@) are not sent to the backend immediately, but rather written
+    -- on the solver's queue.
+    --
+    -- It is the responsibility of the caller to identify these commands and
+    -- sent them through the 'command_' call.
+    --
+    -- When a command is sent whose output is actually necessary, the queue is
+    -- flushed and sent as a batch to the backend.
+    --
+    -- 'Queuing' mode should be faster as there usually is a non-negligible
+    -- constant overhead in sending a command to the backend. When commands are
+    -- sent in batches, a command sent to the solver will only produce an error
+    -- when it is later sent to the backend. Therefore, you probably want to
+    -- stick with 'NoQueuing' mode when debugging.
+    --
+    -- For parsing to work properly, at most one of the commands in the batch
+    -- can produce an output. Hence the @:print-success@ option should not be
+    -- enabled in 'Queuing' mode.
+    Queuing
 
 -- | Push a command on the solver's queue of commands to evaluate.
 -- The command must not produce any output when evaluated, unless it is the last
@@ -57,25 +84,6 @@ flush q = do
 
 -- | A solver is essentially a wrapper around a solver backend. It also comes an
 -- optional queue of commands to send to the backend.
---
--- A solver can either be in 'Queuing' mode or 'NoQueuing' mode. In 'NoQueuing'
--- mode, the queue of commands isn't used and the commands are sent to the
--- backend immediately. In 'Queuing' mode, commands whose output are not
--- strictly necessary for the rest of the computation (typically the ones whose
--- output should just be @success@) and that are sent through 'command_' are not
--- sent to the backend immediately, but rather written on the solver's queue.
--- When a command whose output is actually necessary needs to be sent, the queue
--- is flushed and sent as a batch to the backend.
---
--- 'Queuing' mode should be faster as there usually is a non-negligible constant
--- overhead in sending a command to the backend. But since the commands are sent
--- by batches, a command sent to the solver will only produce an error when the
--- queue is flushed, i.e. when a command with interesting output is sent. You
--- thus probably want to stick with 'NoQueuing' mode when debugging. Moreover,
--- when commands are sent by batches, only the last command in the batch may
--- produce an output for parsing to work properly. Hence the @:print-success@
--- option is disabled in 'Queuing' mode, and this should not be overriden
--- manually.
 data Solver = Solver
   { -- | The backend processing the commands.
     backend :: Backend,
@@ -88,8 +96,7 @@ data Solver = Solver
 -- In particular, the "print-success" option is disabled in 'Queuing' mode. This
 -- should not be overriden manually.
 initSolver ::
-  -- | whether to enable 'Queuing' mode (see 'Solver' for the meaning of this
-  -- flag)
+  -- | whether to enable 'Queuing' mode
   QueuingFlag ->
   -- | the solver backend
   Backend ->
