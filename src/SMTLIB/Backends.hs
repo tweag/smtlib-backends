@@ -16,7 +16,6 @@ import Data.ByteString.Builder (Builder)
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Char (isSpace)
 import Data.IORef (IORef, modifyIORef, newIORef, readIORef, writeIORef)
-import Data.List (intersperse)
 import Prelude hiding (log)
 
 -- | The type of solver backends. SMTLib2 commands are sent to a backend which
@@ -107,11 +106,12 @@ initSolver queuing solverBackend = do
     NoQueuing ->
       -- this should not be enabled when the queue is used, as it messes with parsing
       -- the outputs of commands that are actually interesting
+      --
       -- TODO checking for correctness and enabling laziness can be made compatible
       -- but it would require the solver backends to return several outputs at once
       -- alternatively, we may consider that the user wanting both features should
       -- implement their own backend that deals with this
-      setOption solver "print-success" "true"
+      command_ solver "(set-option :print-success true)"
   return solver
 
 -- | Have the solver evaluate a SMT-LIB command.
@@ -163,9 +163,3 @@ command_ solver cmd =
 -- Only useful in queuing mode, does nothing in non-queuing mode.
 flushQueue :: Solver -> IO ()
 flushQueue solver = maybe (return ()) (send_ (backend solver) <=< flush) $ queue solver
-
-setOption :: Solver -> Builder -> Builder -> IO ()
-setOption solver name value = command_ solver $ list ["set-option", ":" <> name, value]
-
-list :: [Builder] -> Builder
-list bs = "(" <> mconcat (intersperse " " bs) <> ")"
