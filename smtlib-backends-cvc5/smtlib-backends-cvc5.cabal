@@ -11,7 +11,7 @@ license-file:       LICENSE
 author:             Sam Balco
 build-type:         Simple
 category:           SMT
-extra-source-files: 
+extra-source-files:
   cbits/cvc5.h
   cbits/cvc5.cpp
   CHANGELOG.md
@@ -42,7 +42,7 @@ library
   build-depends:
       base             >=4.14    && <4.20
     , bytestring       >=0.10.12 && <0.13
-    , smtlib-backends  >=0.3     && <0.4
+    , smtlib-backends  >=0.3     && <0.5
 
   default-language: Haskell2010
 
