@@ -112,9 +112,8 @@
         };
 
         ## Lightweight development shell.
-        lightweight = hpkgs.shellFor {
-          buildInputs = with pkgs; [haskell.compiler.ghc981 cabal-install z3 cvc5_latest];
-          inherit packages;
+        lightweight = pkgs.mkShell {
+          buildInputs = with pkgs; [haskell.compiler.ghc9101 cabal-install z3 cvc5_latest];
           inherit LD_LIBRARY_PATH;
         };
       };
