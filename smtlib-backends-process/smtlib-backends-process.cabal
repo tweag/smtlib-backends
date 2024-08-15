@@ -33,7 +33,7 @@ library
   exposed-modules:  SMTLIB.Backends.Process
   other-extensions: Safe
   build-depends:
-      base             >=4.14    && <4.20
+      base             >=4.14    && <4.21
     , bytestring       >=0.10.12 && <0.13
     , process          >=1.6     && <1.7
     , smtlib-backends  >=0.3     && <0.5
