@@ -39,4 +39,4 @@ jobs:
         extra_nix_config: |
           access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
     - name: Test backends
-      run: nix develop .#lightweight --command cabal test all
+      run: nix develop .#lightweight --command bash -c "cabal update; cabal test all"
