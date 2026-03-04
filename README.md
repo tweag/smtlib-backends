@@ -8,8 +8,7 @@ We currently provide the following backends:
   running solvers as external processes,
 * a faster backend, available in the `smtlib-backends-z3` package, implemented using Z3
   as a library, and
-* an experimental backend, available in the `smtlib-backends-cvc5` package, implemented
-  using an unstable version of CVC5 as a library.
+* an experimental backend, available in the `smtlib-backends-cvc5` package.
 
 In addition, the API allows for queuing commands so that they are sent to the backend
 only when a response is needed, as we have observed this to reduce the communication

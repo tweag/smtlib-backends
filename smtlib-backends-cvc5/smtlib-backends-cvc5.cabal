@@ -54,7 +54,7 @@ test-suite test
     EdgeCases
     Examples
 
-  ghc-options:      -threaded -Wall -Wunused-packages
+  ghc-options:      -threaded -Wall -Wunused-packages -dynamic
   build-depends:
       base
     , bytestring
