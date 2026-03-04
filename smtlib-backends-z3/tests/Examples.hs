@@ -38,26 +38,28 @@ basicUse =
 -- | How to set options at initialization time.
 settingOptions :: IO ()
 settingOptions =
-  -- the Z3 C API is special (as a backend) in that some of its options can only be
-  -- set when the object representing the state of the solver is created
-  -- hence the 'Z3.new' and 'Z3.with' functions allow for setting options at
-  -- initialization time
+  -- the Z3 C API was special (as a backend) in that some of its options could
+  -- only be set when the object representing the state of the solver was
+  -- created, hence the 'Z3.new' and 'Z3.with' functions allow for setting
+  -- options at initialization time
   Z3.with Z3.defaultConfig
   -- (Z3.Config [(":produce-unsat-cores", "true")])
   $
     \handle -> do
       -- we don't enable queuing so that commands are checked for correctness
       solver <- initSolver NoQueuing (Z3.toBackend handle)
-      -- this is for example the case of the @:produce-assertions@ parameter, and not
-      -- the case of the @:print-success@ one
+      -- setting @:print-success@ should succeed in all cases
       command_ solver "(set-option :print-success true)"
-      -- the following would fail, returning
+      -- In the past, setting produce-unsat-cores would fail, returning
       -- @
       -- (error "line 1 column 33: error setting ':produce-unsat-cores',
       --         option value cannot be modified after initialization")
       -- @
+      --
+      -- This is no longer the case with newer z3 versions
       result <- command solver "(set-option :produce-unsat-cores true)"
-      assertBool ("Expecting error message, got: " ++ LBS.unpack result) $ "(error" `LBS.isPrefixOf` result
+      assertBool ("Expecting \"success\\n\", got: " ++ show (LBS.unpack result)) $
+        "success\n" == result
       return ()
 
 -- | An example on how to force the content of the queue to be evaluated.
