@@ -40,7 +40,7 @@ library
   ghc-options:      -Wall -Wunused-packages
   exposed-modules:  SMTLIB.Backends.CVC5
   build-depends:
-      base             >=4.14    && <4.22
+      base             >=4.14    && <4.23
     , bytestring       >=0.10.12 && <0.13
     , smtlib-backends  >=0.3     && <0.5
 
@@ -54,7 +54,7 @@ test-suite test
     EdgeCases
     Examples
 
-  ghc-options:      -threaded -Wall -Wunused-packages
+  ghc-options:      -threaded -Wall -Wunused-packages -dynamic
   build-depends:
       base
     , bytestring

@@ -9,20 +9,6 @@
   }:
     flake-utils.lib.eachDefaultSystem (system: let
       pkgs = nixpkgs.legacyPackages.${system};
-      cvc5_latest = pkgs.cvc5.overrideAttrs (old: {
-        version = "2023-11-27";
-        src = pkgs.fetchFromGitHub {
-          owner  = "cvc5";
-          repo   = "cvc5";
-          rev    = "115d3d200b304e234cfd97f0eec861a620d5c998";
-          hash  = "sha256-sZ6nTLyyddatt4r4LcW58ULZv9/fjfRfK0eoGNvmUCI=";
-        };
-        nativeBuildInputs = old.nativeBuildInputs ++ [ pkgs.flex ];
-        buildInputs = with pkgs; [
-          cadical.dev symfpu gmp gtest libantlr3c antlr3_4 boost jdk
-          (python3.withPackages (ps: with ps; [ pyparsing toml tomli ]))
-        ];
-      });
       hpkgs = pkgs.haskellPackages;
       smtlib-backends = hpkgs.callPackage ./smtlib-backends.nix {};
       smtlib-backends-process = hpkgs.callPackage ./smtlib-backends-process/smtlib-backends-process.nix {
@@ -34,7 +20,7 @@
       };
       smtlib-backends-cvc5 = hpkgs.callPackage ./smtlib-backends-cvc5/smtlib-backends-cvc5.nix {
         inherit smtlib-backends smtlib-backends-tests;
-        cvc5 = cvc5_latest;
+        cvc5 = pkgs.cvc5;
       };
     in {
       formatter = pkgs.alejandra;
@@ -85,7 +71,7 @@
 
       devShells = let
         ## Needed by Z3 tests and haskell language server
-        LD_LIBRARY_PATH = with pkgs; lib.strings.makeLibraryPath [z3 cvc5_latest];
+        LD_LIBRARY_PATH = with pkgs; lib.strings.makeLibraryPath [z3 cvc5];
         packages = _: [
           smtlib-backends
           smtlib-backends-tests
@@ -103,17 +89,17 @@
             (with hpkgs; [
               cabal-install
               hlint
-              haskell-language-server
+              # haskell-language-server # not installable yet for ghc9141
               cabal-fmt
             ])
-            ++ (with pkgs; [z3 cvc5_latest ormolu]);
+            ++ (with pkgs; [haskell.compiler.ghc9141 z3 cvc5 ormolu]);
 
           inherit LD_LIBRARY_PATH;
         };
 
         ## Lightweight development shell.
         lightweight = pkgs.mkShell {
-          buildInputs = with pkgs; [haskell.compiler.ghc9101 cabal-install z3 cvc5_latest];
+          buildInputs = with pkgs; [haskell.compiler.ghc9141 cabal-install z3 cvc5];
           inherit LD_LIBRARY_PATH;
         };
       };

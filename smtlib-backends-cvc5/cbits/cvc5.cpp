@@ -1,5 +1,6 @@
 #include "cvc5.h"
 #include <cvc5/cvc5.h>
+#include <cvc5/c/cvc5.h>
 #include <cvc5/cvc5_parser.h>
 
 #include <iostream>
@@ -14,10 +15,10 @@ extern "C"
 
 struct cvc5_solver
 {
+    std::unique_ptr<TermManager> ptr_tm_;
     std::unique_ptr<Solver> ptr_;
 
-    cvc5_solver(Solver *slv)
-        : ptr_(slv)
+    cvc5_solver(TermManager *tm) : ptr_tm_(tm), ptr_(new Solver(*tm))
     {
     };
 };
@@ -27,17 +28,12 @@ struct cvc5_parser
 {
     std::unique_ptr<InputParser> ptr_;
 
-    cvc5_parser(InputParser *parser)
-        : ptr_(parser)
-    {
-        parser->setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6, "smtlib");
-    };
+    cvc5_parser(InputParser *parser) : ptr_(parser) { };
 };
 
 cvc5_solver *cvc5_solver_init()
 {
-    auto slv = new Solver();
-    return new cvc5_solver(slv);
+    return new cvc5_solver(new TermManager());
 }
 
 void cvc5_solver_free(cvc5_solver *slv)
@@ -68,6 +64,7 @@ char *cvc5_eval_smtlib2_string(cvc5_solver *slv, cvc5_parser *parser, char const
 
   try
   {
+    parser->ptr_->setIncrementalStringInput(modes::InputLanguage::SMT_LIB_2_6, "smtlib");
     parser->ptr_->appendIncrementalStringInput(in_str);
 
     // get the symbol manager of the parser, used when invoking commands below
