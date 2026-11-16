@@ -7,7 +7,7 @@ on:
 
 jobs:
   markdown-link-check:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@master
     - name: Check links
@@ -17,7 +17,7 @@ jobs:
         file-path: './README.md'
     
   formatting:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     name: Check formatting
     steps:
     - uses: actions/checkout@v3.1.0
@@ -29,7 +29,7 @@ jobs:
     - run: nix flake check
 
   testing:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     name: Run test suites
     steps:
     - uses: actions/checkout@v3.1.0
